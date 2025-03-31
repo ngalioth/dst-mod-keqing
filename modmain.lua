@@ -29,6 +29,7 @@ PrefabFiles =
     "kq_books", -- 书
     "kq_telepole", -- 电线杆
     "kq_tailing_fx", -- 拖尾
+    "keqing_fx",
 }
 
 ---对比老版本 主要是增加了names图片 人物检查图标 还有人物的手臂修复（增加了上臂）
@@ -266,3 +267,4 @@ modimport('main/recipes.lua')
 modimport('main/stategraphs.lua')
 modimport('main/postinits.lua')
 modimport('scripts/main.lua')
+modimport('scripts/sg.lua')
