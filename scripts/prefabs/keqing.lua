@@ -303,6 +303,8 @@ local common_postinit = function(inst)
     inst:AddComponent("kq_crit")
     inst.components.kq_crit:SetCrit(0.05) -- 暴击率
     inst.components.kq_crit:SetCritdmg(0.884) -- 暴击伤害
+    inst:AddComponent("keqing_aoe_dmg")
+    inst:AddComponent("elemental_burst")
     -- 按键组件
     inst:AddComponent("key")
     --元素战技组件
