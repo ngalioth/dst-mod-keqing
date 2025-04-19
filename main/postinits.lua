@@ -97,103 +97,103 @@ if IsModEnable("727774324") then
     AddCookingPot('kq_liyuepot')
 end
 
--- 元素反应mod未开启时
-if not IsModEnable("2578151314") then
-    AddComponentPostInit("combat", function (self)
-        function self:CalcDamage(target, weapon, multiplier)
-            if target:HasTag("alwaysblock") then
-                return 0
-            end
-            local basedamage
-            local basemultiplier = self.damagemultiplier
-            local externaldamagemultipliers = self.externaldamagemultipliers
-            local damagetypemult = 1
-            local bonus = self.damagebonus --not affected by multipliers
-            local playermultiplier = target ~= nil and target:HasTag("player")
-            local pvpmultiplier = playermultiplier and self.inst:HasTag("player") and self.pvp_damagemod or 1
-            local mount = nil
-            local spdamage
-            local crit = 0
-            local critdmg = 1.0
-            --NOTE: playermultiplier is for damage towards players
-            --      generally only applies for NPCs attacking players
-            if weapon ~= nil then
-                --No playermultiplier when using weapons
-                basedamage, spdamage = weapon.components.weapon:GetDamage(self.inst, target)
-                playermultiplier = 1
-                --#V2C: entity's own damagetypebonus stacks with weapon's damagetypebonus
-                if self.inst.components.damagetypebonus ~= nil then
-                    damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
-                end
-                --#DiogoW: entity's own SpDamage stacks with weapon's SpDamage
-                spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
-                if weapon.components.kq_crit and self.inst.components.kq_crit then
-                    crit = weapon.components.kq_crit:GetCrit() + self.inst.components.kq_crit:GetCrit()
-                    if math.random() <= crit then
-                        critdmg = critdmg + weapon.components.kq_crit:GetCritdmg() + self.inst.components.kq_crit:GetCritdmg()
-                    end
-                end
-            else
-                basedamage = self.defaultdamage
-                playermultiplier = playermultiplier and self.playerdamagepercent or 1
-                if self.inst.components.rider ~= nil and self.inst.components.rider:IsRiding() then
-                    mount = self.inst.components.rider:GetMount()
-                    if mount ~= nil and mount.components.combat ~= nil then
-                        basedamage = mount.components.combat.defaultdamage
-                        basemultiplier = mount.components.combat.damagemultiplier
-                        externaldamagemultipliers = mount.components.combat.externaldamagemultipliers
-                        bonus = mount.components.combat.damagebonus
-                        if mount.components.damagetypebonus ~= nil then
-                            damagetypemult = mount.components.damagetypebonus:GetBonus(target)
-                        end
-                        spdamage = SpDamageUtil.CollectSpDamage(mount, spdamage)
-                    else
-                        if self.inst.components.damagetypebonus ~= nil then
-                            damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
-                        end
-                        spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
-                    end
-                    local saddle = self.inst.components.rider:GetSaddle()
-                    if saddle ~= nil and saddle.components.saddler ~= nil then
-                        basedamage = basedamage + saddle.components.saddler:GetBonusDamage()
-                        if saddle.components.damagetypebonus ~= nil then
-                            damagetypemult = damagetypemult * saddle.components.damagetypebonus:GetBonus(target)
-                        end
-                        spdamage = SpDamageUtil.CollectSpDamage(saddle, spdamage)
-                    end
-                else
-                    if self.inst.components.damagetypebonus ~= nil then
-                        damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
-                    end
-                    spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
-                end
-            end
-            local damage = (basedamage or 0)
-                * (basemultiplier or 1)
-                * externaldamagemultipliers:Get()
-                * damagetypemult
-                * (multiplier or 1)
-                * playermultiplier
-                * pvpmultiplier
-                * (self.customdamagemultfn ~= nil and self.customdamagemultfn(self.inst, target, weapon, multiplier, mount) or 1)
-                + (bonus or 0)
-            if spdamage ~= nil then
-                local spmult =
-                    damagetypemult *
-                    --playermultiplier * --@V2C excluded to avoid tuning nightmare
-                    pvpmultiplier
-                if spmult ~= 1 then
-                    spdamage = SpDamageUtil.ApplyMult(spdamage, spmult)
-                end
-                for i, v in ipairs(spdamage) do
-                    spdamage[i] = spdamage[i] * critdmg
-                end
-            end
-            damage = damage * critdmg
-            return damage, spdamage
-        end
-    end)
-end
+-- -- 元素反应mod未开启时
+-- if not IsModEnable("2578151314") then
+--     AddComponentPostInit("combat", function (self)
+--         function self:CalcDamage(target, weapon, multiplier)
+--             if target:HasTag("alwaysblock") then
+--                 return 0
+--             end
+--             local basedamage
+--             local basemultiplier = self.damagemultiplier
+--             local externaldamagemultipliers = self.externaldamagemultipliers
+--             local damagetypemult = 1
+--             local bonus = self.damagebonus --not affected by multipliers
+--             local playermultiplier = target ~= nil and target:HasTag("player")
+--             local pvpmultiplier = playermultiplier and self.inst:HasTag("player") and self.pvp_damagemod or 1
+--             local mount = nil
+--             local spdamage
+--             local crit = 0
+--             local critdmg = 1.0
+--             --NOTE: playermultiplier is for damage towards players
+--             --      generally only applies for NPCs attacking players
+--             if weapon ~= nil then
+--                 --No playermultiplier when using weapons
+--                 basedamage, spdamage = weapon.components.weapon:GetDamage(self.inst, target)
+--                 playermultiplier = 1
+--                 --#V2C: entity's own damagetypebonus stacks with weapon's damagetypebonus
+--                 if self.inst.components.damagetypebonus ~= nil then
+--                     damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
+--                 end
+--                 --#DiogoW: entity's own SpDamage stacks with weapon's SpDamage
+--                 spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
+--                 if weapon.components.kq_crit and self.inst.components.kq_crit then
+--                     crit = weapon.components.kq_crit:GetCrit() + self.inst.components.kq_crit:GetCrit()
+--                     if math.random() <= crit then
+--                         critdmg = critdmg + weapon.components.kq_crit:GetCritdmg() + self.inst.components.kq_crit:GetCritdmg()
+--                     end
+--                 end
+--             else
+--                 basedamage = self.defaultdamage
+--                 playermultiplier = playermultiplier and self.playerdamagepercent or 1
+--                 if self.inst.components.rider ~= nil and self.inst.components.rider:IsRiding() then
+--                     mount = self.inst.components.rider:GetMount()
+--                     if mount ~= nil and mount.components.combat ~= nil then
+--                         basedamage = mount.components.combat.defaultdamage
+--                         basemultiplier = mount.components.combat.damagemultiplier
+--                         externaldamagemultipliers = mount.components.combat.externaldamagemultipliers
+--                         bonus = mount.components.combat.damagebonus
+--                         if mount.components.damagetypebonus ~= nil then
+--                             damagetypemult = mount.components.damagetypebonus:GetBonus(target)
+--                         end
+--                         spdamage = SpDamageUtil.CollectSpDamage(mount, spdamage)
+--                     else
+--                         if self.inst.components.damagetypebonus ~= nil then
+--                             damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
+--                         end
+--                         spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
+--                     end
+--                     local saddle = self.inst.components.rider:GetSaddle()
+--                     if saddle ~= nil and saddle.components.saddler ~= nil then
+--                         basedamage = basedamage + saddle.components.saddler:GetBonusDamage()
+--                         if saddle.components.damagetypebonus ~= nil then
+--                             damagetypemult = damagetypemult * saddle.components.damagetypebonus:GetBonus(target)
+--                         end
+--                         spdamage = SpDamageUtil.CollectSpDamage(saddle, spdamage)
+--                     end
+--                 else
+--                     if self.inst.components.damagetypebonus ~= nil then
+--                         damagetypemult = self.inst.components.damagetypebonus:GetBonus(target)
+--                     end
+--                     spdamage = SpDamageUtil.CollectSpDamage(self.inst, spdamage)
+--                 end
+--             end
+--             local damage = (basedamage or 0)
+--                 * (basemultiplier or 1)
+--                 * externaldamagemultipliers:Get()
+--                 * damagetypemult
+--                 * (multiplier or 1)
+--                 * playermultiplier
+--                 * pvpmultiplier
+--                 * (self.customdamagemultfn ~= nil and self.customdamagemultfn(self.inst, target, weapon, multiplier, mount) or 1)
+--                 + (bonus or 0)
+--             if spdamage ~= nil then
+--                 local spmult =
+--                     damagetypemult *
+--                     --playermultiplier * --@V2C excluded to avoid tuning nightmare
+--                     pvpmultiplier
+--                 if spmult ~= 1 then
+--                     spdamage = SpDamageUtil.ApplyMult(spdamage, spmult)
+--                 end
+--                 for i, v in ipairs(spdamage) do
+--                     spdamage[i] = spdamage[i] * critdmg
+--                 end
+--             end
+--             damage = damage * critdmg
+--             return damage, spdamage
+--         end
+--     end)
+-- end
 
 AddStategraphPostInit("wilson", function (inst)
     local framenum = 0

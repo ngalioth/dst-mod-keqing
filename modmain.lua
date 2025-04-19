@@ -5,7 +5,7 @@ PrefabFiles =
     "kq_food",
     "kq_specialfish", -- 绝境求生烤鱼
     "kq_liyuepot", --锅
-    "greensword", --绿剑
+    -- "greensword", --绿剑
     "kq_shrimp", -- 虾
     "kq_amber", -- 石珀
     "kq_foodbag", -- 便携营养袋 
@@ -30,6 +30,8 @@ PrefabFiles =
     "kq_telepole", -- 电线杆
     "kq_tailing_fx", -- 拖尾
     "keqing_fx",
+    "keqing_buff",
+    "keqing_pjc"
 }
 
 ---对比老版本 主要是增加了names图片 人物检查图标 还有人物的手臂修复（增加了上臂）
@@ -239,7 +241,7 @@ TUNING.KEQING_SANITY = 200
 TUNING.KEQING_SKILL_KEY = GetModConfigData("skill")
 TUNING.KEQING_BURST_KEY = GetModConfigData("burst")
 --初始物品
-TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING = {"greensword", "kq_hairpins"}
+TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING = {"kq_hairpins"}
 TUNING.STARTING_ITEM_IMAGE_OVERRIDE.greensword =
 {
 	atlas = "images/inventoryimages/greensword.xml",
