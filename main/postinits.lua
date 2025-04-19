@@ -3,98 +3,100 @@ local SpDamageUtil = require("components/spdamageutil")
 
 -- 给池塘添加虾
 AddPrefabPostInit("pond", function(inst)
-    if not TheWorld.ismastersim then
-        return
-    end
-    if inst.components.fishable ~= nil then
-        inst.components.fishable:AddFish("kq_shrimp")
-        inst.components.fishable:SetRespawnTime(TUNING.FISH_RESPAWN_TIME)
-    end
+	if not TheWorld.ismastersim then
+		return
+	end
+	if inst.components.fishable ~= nil then
+		inst.components.fishable:AddFish("kq_shrimp")
+		inst.components.fishable:SetRespawnTime(TUNING.FISH_RESPAWN_TIME)
+	end
 end)
 
 -- 给龙蝇和巨鹿添加掉落物
-AddPrefabPostInit("dragonfly", function (inst)
-    if inst.components.lootdropper then
-        inst.components.lootdropper:AddChanceLoot("kq_hotcore", 1.0)
-    end
+AddPrefabPostInit("dragonfly", function(inst)
+	if inst.components.lootdropper then
+		inst.components.lootdropper:AddChanceLoot("kq_hotcore", 1.0)
+	end
 end)
 
-AddPrefabPostInit("deerclops", function (inst)
-    if inst.components.lootdropper then
-        inst.components.lootdropper:AddChanceLoot("kq_coldcore", 1.0)
-    end
+AddPrefabPostInit("deerclops", function(inst)
+	if inst.components.lootdropper then
+		inst.components.lootdropper:AddChanceLoot("kq_coldcore", 1.0)
+	end
 end)
 
 --去除沙漠目镜的滤镜显示
-AddClassPostConstruct("widgets/gogglesover", function(self , owner)
-    local ToggleGoggles_old = self.ToggleGoggles
-    self.ToggleGoggles = function(self,show, ...)
-        ToggleGoggles_old(self, show, ...)
-        if self.owner and self.owner.replica.inventory:EquipHasTag("goggles") then
-            self.inst.entity:Hide(false)
-        end
-    end
+AddClassPostConstruct("widgets/gogglesover", function(self, owner)
+	local ToggleGoggles_old = self.ToggleGoggles
+	self.ToggleGoggles = function(self, show, ...)
+		ToggleGoggles_old(self, show, ...)
+		if self.owner and self.owner.replica.inventory:EquipHasTag("goggles") then
+			self.inst.entity:Hide(false)
+		end
+	end
 end)
 
 -- 冻结免疫
-AddComponentPostInit("freezable",function(self)
-    for k, v in ipairs({"AddColdness", "Freeze"}) do
-        local old = self[v]
-        self[v] = function (self, ...)
-            if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antifreeze") then
-                return
-            else
-                return old(self, ...)
-            end
-        end
-    end
+AddComponentPostInit("freezable", function(self)
+	for k, v in ipairs({ "AddColdness", "Freeze" }) do
+		local old = self[v]
+		self[v] = function(self, ...)
+			if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antifreeze") then
+				return
+			else
+				return old(self, ...)
+			end
+		end
+	end
 end)
 
 -- 催眠免疫
-AddComponentPostInit("sleeper",function(self)
-    for k, v in ipairs({"AddSleepiness", "GoToSleep"}) do
-        local old = self[v]
-        self[v] = function (self, ...)
-            if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antisleep") then
-                return
-            else
-                return old(self, ...)
-            end
-        end
-    end
+AddComponentPostInit("sleeper", function(self)
+	for k, v in ipairs({ "AddSleepiness", "GoToSleep" }) do
+		local old = self[v]
+		self[v] = function(self, ...)
+			if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antisleep") then
+				return
+			else
+				return old(self, ...)
+			end
+		end
+	end
 end)
-AddComponentPostInit("grogginess",function(self)
-    for k, v in ipairs({"AddGrogginess", "groggy"}) do
-        local old = self[v]
-        self[v] = function (self, ...)
-            if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antisleep") then
-                return
-            else
-                return old(self, ...)
-            end
-        end
-    end
+AddComponentPostInit("grogginess", function(self)
+	for k, v in ipairs({ "AddGrogginess", "groggy" }) do
+		local old = self[v]
+		self[v] = function(self, ...)
+			if self.inst.components.inventory and self.inst.components.inventory:EquipHasTag("kq_antisleep") then
+				return
+			else
+				return old(self, ...)
+			end
+		end
+	end
 end)
 
 local moddir = KnownModIndex:GetModsToLoad(true)
 local enablemods = {}
 
 for k, dir in pairs(moddir) do
-    local info = KnownModIndex:GetModInfo(dir)
-    local name = info and info.name or "unknow"
-    enablemods[dir] = name
+	local info = KnownModIndex:GetModInfo(dir)
+	local name = info and info.name or "unknow"
+	enablemods[dir] = name
 end
 -- MOD是否开启
 function IsModEnable(name)
-    for k, v in pairs(enablemods) do
-        if v and (k:match(name) or v:match(name)) then return true end
-    end
-    return false
+	for k, v in pairs(enablemods) do
+		if v and (k:match(name) or v:match(name)) then
+			return true
+		end
+	end
+	return false
 end
 
 -- 兼容智能锅mod
 if IsModEnable("727774324") then
-    AddCookingPot('kq_liyuepot')
+	AddCookingPot("kq_liyuepot")
 end
 
 -- -- 元素反应mod未开启时
@@ -195,49 +197,46 @@ end
 --     end)
 -- end
 
-AddStategraphPostInit("wilson", function (inst)
-    local framenum = 0
-    local states =
-    {
-        State{
-            name = "veryquickcastspell",
-            tags = { "doing", "busy", "canrotate" },
-            onenter = function(inst)
-                inst.components.locomotor:Stop()
-                if not(inst.components.inventory and inst.components.inventory:EquipHasTag("greensword")) then
-                    framenum = 9
-                    if inst.components.rider:IsRiding() then
-                        inst.AnimState:PlayAnimation("player_atk_pre")
-                        inst.AnimState:PushAnimation("player_atk", false)
-                    else
-                        inst.AnimState:PlayAnimation("atk_pre")
-                        inst.AnimState:PushAnimation("atk", false)
-                    end
-                end
-                inst.SoundEmitter:PlaySound("dontstarve/wilson/attack_weapon")
-            end,
-            timeline =
-            {
-                TimeEvent(framenum * FRAMES, function(inst)
-                    inst:PerformBufferedAction()
-                    inst.sg:RemoveStateTag("busy")
-                end),
-                TimeEvent((framenum + 2) * FRAMES, function(inst)
-                    inst.sg:GoToState("idle")
-                end),
-            },
-            events =
-            {
-                EventHandler("animqueueover", function(inst)
-                    if inst.AnimState:AnimDone() then
-                        inst.sg:GoToState("idle")
-                    end
-                end),
-            },
-        },
-    }
-    for k, v in pairs(states) do
-        assert(v:is_a(State), "Non-state added in mod state table!")
-        inst.states[v.name] = v
-    end
+AddStategraphPostInit("wilson", function(inst)
+	local framenum = 0
+	local states = {
+		State({
+			name = "veryquickcastspell",
+			tags = { "doing", "busy", "canrotate" },
+			onenter = function(inst)
+				inst.components.locomotor:Stop()
+				if not (inst.components.inventory and inst.components.inventory:EquipHasTag("greensword")) then
+					framenum = 9
+					if inst.components.rider:IsRiding() then
+						inst.AnimState:PlayAnimation("player_atk_pre")
+						inst.AnimState:PushAnimation("player_atk", false)
+					else
+						inst.AnimState:PlayAnimation("atk_pre")
+						inst.AnimState:PushAnimation("atk", false)
+					end
+				end
+				inst.SoundEmitter:PlaySound("dontstarve/wilson/attack_weapon")
+			end,
+			timeline = {
+				TimeEvent(framenum * FRAMES, function(inst)
+					inst:PerformBufferedAction()
+					inst.sg:RemoveStateTag("busy")
+				end),
+				TimeEvent((framenum + 2) * FRAMES, function(inst)
+					inst.sg:GoToState("idle")
+				end),
+			},
+			events = {
+				EventHandler("animqueueover", function(inst)
+					if inst.AnimState:AnimDone() then
+						inst.sg:GoToState("idle")
+					end
+				end),
+			},
+		}),
+	}
+	for k, v in pairs(states) do
+		assert(v:is_a(State), "Non-state added in mod state table!")
+		inst.states[v.name] = v
+	end
 end)

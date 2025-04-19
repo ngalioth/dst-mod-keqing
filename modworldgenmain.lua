@@ -1,49 +1,52 @@
-GLOBAL.setmetatable(env, {__index = function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
+GLOBAL.setmetatable(env, {
+	__index = function(t, k)
+		return GLOBAL.rawget(GLOBAL, k)
+	end,
+})
 
-AddRoom("kq_stoneamber",
-{
-	colour = {r = 1.5 , g = 1 , b = .8 , a = .50},
+AddRoom("kq_stoneamber", {
+	colour = { r = 1.5, g = 1, b = 0.8, a = 0.50 },
 	value = GROUND.ROCKY,
-	contents =
-	{
-		countprefabs =	--必定会出现对应数量的物品的表
-		{
-			kq_stoneamber = function () return 25 + math.random(15) end,
+	contents = {
+		--必定会出现对应数量的物品的表
+		countprefabs = {
+			kq_stoneamber = function()
+				return 25 + math.random(15)
+			end,
 		},
 		distributepercent = 0.25, -- distributeprefabs就是按比例
-		distributeprefabs =
-		{
-		    kq_stoneamber = 0.1,
+		distributeprefabs = {
+			kq_stoneamber = 0.1,
 		},
-	}
+	},
 })
 
 AddTaskPreInit("terrain_rocky", function(task)
-    task.room_choices["kq_stoneamber"] = 20
+	task.room_choices["kq_stoneamber"] = 20
 end)
 
-AddRoomPreInit("TallbirdNests",function(self)
-    if self.contents and self.contents.distributeprefabs then
-        self.contents.distributeprefabs.kq_stoneamber = 0.2
-    end
+AddRoomPreInit("TallbirdNests", function(self)
+	if self.contents and self.contents.distributeprefabs then
+		self.contents.distributeprefabs.kq_stoneamber = 0.2
+	end
 end)
 
-AddRoomPreInit("Rocky",function(self)
-    if self.contents and self.contents.distributeprefabs then
-        self.contents.distributeprefabs.kq_stoneamber = 0.2
-    end
+AddRoomPreInit("Rocky", function(self)
+	if self.contents and self.contents.distributeprefabs then
+		self.contents.distributeprefabs.kq_stoneamber = 0.2
+	end
 end)
 
-AddRoomPreInit("RockyBuzzards",function(self)
-    if self.contents and self.contents.distributeprefabs then
-        self.contents.distributeprefabs.kq_stoneamber = 0.2
-    end
+AddRoomPreInit("RockyBuzzards", function(self)
+	if self.contents and self.contents.distributeprefabs then
+		self.contents.distributeprefabs.kq_stoneamber = 0.2
+	end
 end)
 
-AddRoomPreInit("BGRocky",function(self)
-    if self.contents and self.contents.distributeprefabs then
-        self.contents.distributeprefabs.kq_stoneamber = 0.2
-    end
+AddRoomPreInit("BGRocky", function(self)
+	if self.contents and self.contents.distributeprefabs then
+		self.contents.distributeprefabs.kq_stoneamber = 0.2
+	end
 end)
 
 -- AddRoom("NewRoom", {
@@ -59,7 +62,7 @@ end)
 --         --     return 0
 --         -- end},
 --         countprefabs = { --countprefabs适用于你想添加几个东西，按个数计算
---             caomeibush = 1, --暂时测试使用，酒架  
+--             caomeibush = 1, --暂时测试使用，酒架
 --         },
 --         distributepercent = 0.25,  --distributeprefabs就是按比例
 --         distributeprefabs= {

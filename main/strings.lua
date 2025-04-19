@@ -1,36 +1,36 @@
 -- The character select screen lines  --人物选人界面的描述
 STRINGS.CHARACTER_TITLES.keqing =
-    "璃月七星之一，玉衡星。对「帝君一言而决的璃月」颇有微词——但实际上，神挺欣赏她这样的人。" -- 人物描述
+	"璃月七星之一，玉衡星。对「帝君一言而决的璃月」颇有微词——但实际上，神挺欣赏她这样的人。" -- 人物描述
 STRINGS.CHARACTER_NAMES.keqing = "刻晴" -- 人物名字
 STRINGS.CHARACTER_DESCRIPTIONS.keqing =
-    "位移、能量回复、派遣、自身附魔、自身伤害提升、自身暴击率提升"
+	"位移、能量回复、派遣、自身附魔、自身伤害提升、自身暴击率提升"
 
 -- *沾染风霜的发簪\n*抵天雷罚\n*工作狂" -- 人物标签
 STRINGS.CHARACTER_SURVIVABILITY.keqing = "较为轻松" -- 生存几率
-STRINGS.CHARACTER_QUOTES.keqing = "\"耽误太多时间，事情可就做不完了。\"" -- 选人界面下面的一句话
+STRINGS.CHARACTER_QUOTES.keqing = '"耽误太多时间，事情可就做不完了。"' -- 选人界面下面的一句话
 
 -- The character's name as appears in-game  --人物在游戏里面的名字
 STRINGS.NAMES.keqing = "刻晴" -- 人物名字
 -- STRINGS.SKIN_NAMES.keqing_none = "霓裾翩跹"  --检查界面显示的名字
 
 STRINGS.SKIN_NAMES.keqing = "雷厉寰宇"
-STRINGS.SKIN_QUOTES.keqing = "\"耽误太多时间，事情可就做不完了。\""
+STRINGS.SKIN_QUOTES.keqing = '"耽误太多时间，事情可就做不完了。"'
 STRINGS.SKIN_DESCRIPTIONS.keqing = "刻晴的装扮款式，用料华贵的飒爽裙装。"
 
 STRINGS.SKIN_NAMES.keqing_eryuan = "二元"
-STRINGS.SKIN_QUOTES.keqing_eryuan = "\"呐呐呐！\""
+STRINGS.SKIN_QUOTES.keqing_eryuan = '"呐呐呐！"'
 STRINGS.SKIN_DESCRIPTIONS.keqing_eryuan = "看起来更二次元了？（大概吧。）"
 
 STRINGS.SKIN_NAMES.keqing_nostalgia = "怀旧"
-STRINGS.SKIN_QUOTES.keqing_nostalgia = "\"它沾染风霜的样子是最有魅力的。\""
+STRINGS.SKIN_QUOTES.keqing_nostalgia = '"它沾染风霜的样子是最有魅力的。"'
 STRINGS.SKIN_DESCRIPTIONS.keqing_nostalgia = "已经逐渐融入永恒领域了！"
 
 STRINGS.SKIN_NAMES.keqing_gotomoon = "前往月亮"
-STRINGS.SKIN_QUOTES.keqing_gotomoon = "\"奢华而危险。\""
+STRINGS.SKIN_QUOTES.keqing_gotomoon = '"奢华而危险。"'
 STRINGS.SKIN_DESCRIPTIONS.keqing_gotomoon = "虽然失败了，但总要有理想的吧。"
 
 STRINGS.SKIN_NAMES.keqing_telepole = "电线杆"
-STRINGS.SKIN_QUOTES.keqing_telepole = "\"嗷~呜~！\""
+STRINGS.SKIN_QUOTES.keqing_telepole = '"嗷~呜~！"'
 STRINGS.SKIN_DESCRIPTIONS.keqing_telepole = "哈！吾将以雷电击碎一切！！！"
 
 -- Custom speech strings  ----人物语言文件  可以进去自定义
@@ -38,14 +38,14 @@ STRINGS.CHARACTERS.KEQING = require("speech_keqing")
 
 STRINGS.NAMES.KQ_GOLDENSHRIMP = "金丝虾球" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_GOLDENSHRIMP =
-    "金黄酥脆的土豆丝包裹的弹嫩虾仁，我都不敢想象那有多好吃。" -- 按alt检查时人物说的话
+	"金黄酥脆的土豆丝包裹的弹嫩虾仁，我都不敢想象那有多好吃。" -- 按alt检查时人物说的话
 
 STRINGS.NAMES.KQ_POCKETCAKE = "口袋饼" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_POCKETCAKE = "肉馅多样的面饼，方便易携。" -- 按alt检查时人物说的话
 
 STRINGS.NAMES.KQ_GRILLEDFISH = "烤吃虎鱼" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_GRILLEDFISH =
-    "急火烤制的鱼串，金灿灿的表皮下是鲜嫩的美味。" -- 按alt检查时人物说的话
+	"急火烤制的鱼串，金灿灿的表皮下是鲜嫩的美味。" -- 按alt检查时人物说的话
 
 STRINGS.NAMES.KQ_FRIEDEGG = "提瓦特煎蛋" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_FRIEDEGG = "单面煎熟的禽蛋，有着阳光般和煦的口感。" -- 按alt检查时人物说的话
@@ -92,7 +92,7 @@ STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_STONEAMBER = "高纯的岩元素伴生的
 
 STRINGS.NAMES.KQ_LIGHTAMBER = "仙家琥珀—刚烈自见" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_LIGHTAMBER =
-    "传说中源自仙家的琥珀，历经风雨打磨呈现出剑锋与枪尖的形貌。" -- 按alt检查时人物说的话
+	"传说中源自仙家的琥珀，历经风雨打磨呈现出剑锋与枪尖的形貌。" -- 按alt检查时人物说的话
 STRINGS.RECIPE_DESC.KQ_LIGHTAMBER = "曾有镇邪之力，散落在璃月各地的琥珀" -- 物品的制作描述
 
 STRINGS.NAMES.KQ_FOODBAG = "零柒式—便携营养袋" -- 物体在游戏中显示的名字
@@ -101,7 +101,7 @@ STRINGS.RECIPE_DESC.KQ_FOODBAG = "一个便携返鲜冰箱"
 
 STRINGS.NAMES.KQ_BACKPACK = "刻刻猫猫喵喵包包" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_BACKPACK =
-    "灵巧而富有智慧的生灵，抱持着与生俱来的优雅与骄傲。" -- 按alt检查时人物说的话
+	"灵巧而富有智慧的生灵，抱持着与生俱来的优雅与骄傲。" -- 按alt检查时人物说的话
 STRINGS.RECIPE_DESC.KQ_BACKPACK = "灵巧而富有智慧的生灵，抱持着与生俱来的优雅与骄傲。" -- 物品的制作描述
 
 STRINGS.NAMES.KQ_HAIRPINS = "绝境求生发簪" -- 物体在游戏中显示的名字
@@ -110,12 +110,12 @@ STRINGS.RECIPE_DESC.KQ_HAIRPINS = "与刻晴形影不离的配饰" -- 物品的�
 
 STRINGS.NAMES.KQ_LIGHTSTONE = "流明石触媒" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_LIGHTSTONE =
-    "但愿它能如同掌心的小太阳一样，为黑暗中的跋涉带来些许光亮、些许慰藉。" -- 按alt检查时人物说的话
+	"但愿它能如同掌心的小太阳一样，为黑暗中的跋涉带来些许光亮、些许慰藉。" -- 按alt检查时人物说的话
 STRINGS.RECIPE_DESC.KQ_LIGHTSTONE = "为黑暗中的跋涉带来些许光亮。" -- 物品的制作描述
 
 STRINGS.NAMES.KQ_ELECFUR = "奇特的羽毛" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_ELECFUR =
-    "带着这枚羽毛，走遍世界吧。毕竟，已经和他说好了。" -- 按alt检查时人物说的话
+	"带着这枚羽毛，走遍世界吧。毕竟，已经和他说好了。" -- 按alt检查时人物说的话
 STRINGS.RECIPE_DESC.KQ_ELECFUR = "在雷电的土地上能够发挥神奇的作用。" -- 物品的制作描述
 
 STRINGS.NAMES.KQ_HOTBOTTLE = "放热瓶" -- 物体在游戏中显示的名字

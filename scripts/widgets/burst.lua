@@ -1,6 +1,6 @@
-local Widget = require "widgets/widget"
-local Text = require "widgets/text"
-local UIAnim = require "widgets/uianim"
+local Widget = require("widgets/widget")
+local Text = require("widgets/text")
+local UIAnim = require("widgets/uianim")
 
 local burst = Class(Widget, function(self, owner)
 	Widget._ctor(self, "burst")

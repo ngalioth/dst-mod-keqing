@@ -1,6 +1,6 @@
-local Widget = require "widgets/widget"
-local Text = require "widgets/text"
-local Image = require "widgets/image"
+local Widget = require("widgets/widget")
+local Text = require("widgets/text")
+local Image = require("widgets/image")
 
 local skill = Class(Widget, function(self, owner)
 	Widget._ctor(self, "skill")
