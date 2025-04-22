@@ -126,7 +126,41 @@ local actions = { ----------------------------INVENTORY道具栏右键----------
 			priority = 10, -- 99999,
 			mount_valid = true,
 		},
-	}, ----------------------------SCENE点击物品----------------------------
+	},
+	{
+		id = "UPGRADEABLE_KEQING",
+		str = "通用升级",
+		fn = function(act)
+			if act.doer ~= nil and act.invobject ~= nil and act.target ~= nil and act.target.components.refinement then
+				local item = act.invobject
+				local target = act.target
+				if target.components.refinement:DoRefine(item, act.doer) then
+					removeItem(item)
+					return true
+				end
+			end
+			return false
+		end,
+		state = "give",
+		actiondata = {
+			stroverridefn = function(act)
+				local invobj = act.invobject
+				local target = act.target
+				if invobj ~= nil and target ~= nil then
+					if target.components.refinement and invobj.prefab == target.prefab then
+						return "精练"
+					end
+					if target.prefab == "keqing_pjc" or "kq_hairpins" then
+						return "升级"
+					end
+				end
+			end,
+			priority = 10, -- 99999,
+			mount_valid = true,
+		},
+	},
+
+	----------------------------SCENE点击物品----------------------------
 	-- {
 	-- 	id = "TOUCHMEDALTOWER", --摸塔
 	-- 	str = STRINGS.MEDAL_NEWACTION.TOUCHMEDALTOWER,
@@ -194,6 +228,15 @@ local component_actions = {
 					local flag = ITEMS[inst.prefab]
 					if flag ~= nil and target.prefab == "kq_hairpins" and target[flag] ~= 1 then
 						return true
+					end
+					return false
+				end,
+			},
+			{
+				action = "UPGRADEABLE_KEQING", -- 通用升级
+				testfn = function(inst, doer, target, actions, right)
+					if target ~= nil and target.components.refinement then
+						return target.components.refinement:CanAcceptItem(inst.prefab)
 					end
 					return false
 				end,

@@ -83,12 +83,12 @@ if actions_status then
 	end
 end
 
--- --动作兼容行为排队论
--- local actionqueuer_status,actionqueuer_data = pcall(require,"components/actionqueuer")
--- if actionqueuer_status then
--- 	if AddActionQueuerAction and next(queueractlist) then
---     	for k,v in pairs(queueractlist) do
---     		AddActionQueuerAction(v,k,true)
---     	end
---     end
--- end
+--动作兼容行为排队论
+local actionqueuer_status, actionqueuer_data = pcall(require, "components/actionqueuer")
+if actionqueuer_status then
+	if AddActionQueuerAction and next(queueractlist) then
+		for k, v in pairs(queueractlist) do
+			AddActionQueuerAction(v, k, true)
+		end
+	end
+end

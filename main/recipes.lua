@@ -1,5 +1,3 @@
--- 旧版本合成表，能用，但是报warning
---AddRecipe("lightamber",{Ingredient("goldnugget", 4),Ingredient("rocks", 2),Ingredient("amber", 1)},RECIPETABS.LIGHT, TECH.NONE, true, nil, nil, 1, "keqing", "images/inventoryimages/lightamber.xml")
 --非常非常感谢“能力勋章”的作者整理的这一份新版制作栏的详细内容
 --[[
 {

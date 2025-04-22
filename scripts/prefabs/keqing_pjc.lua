@@ -7,12 +7,15 @@ local assets = {
 	Asset("ATLAS", "images/inventoryimages/greensword.xml"), -- 加载物品栏贴图
 }
 
-local exclude_tags = { "INLIMBO", "companion", "wall", "abigail", "player", "chester" }
-
 local function onequip(inst, owner) -- 装备
 	owner.AnimState:OverrideSymbol("swap_object", "swap_greensword", "swap_greensword") -- 第三个参数是放动画贴图的文件夹的名字
 	owner.AnimState:Show("ARM_carry")
 	owner.AnimState:Hide("ARM_normal")
+
+	local refinements = inst.components.refinement:GetRefineLevel("keqing_pjc") -- 获取精练等级
+	-- 装备时增加装备者的最大生命值20%的位面伤害
+	inst.components.planardamage:AddBonus(inst, owner.components.health.maxhealth * 0.2 * refinements, "pjc")
+
 	if owner.components.stats_manager ~= nil then
 		owner.components.stats_manager.crit:SetModifier(inst, 0.441)
 	end
@@ -21,8 +24,22 @@ end
 local function onunequip(inst, owner) -- 解除装备
 	owner.AnimState:Hide("ARM_carry")
 	owner.AnimState:Show("ARM_normal")
+
+	inst.components.planardamage:RemoveBonus(inst, "pjc")
+
 	if owner.components.stats_manager ~= nil then
 		owner.components.stats_manager.crit:RemoveModifier(inst)
+	end
+end
+
+local function onrefine(inst)
+	local greengem_num = inst.components.refinement:GetRefineLevel("greengem")
+	local isAccelerated = inst.components.refinement:GetRefineLevel("walrus_tusk")
+	inst.components.planardamage:SetBaseDamage(greengem_num * 5)
+	if isAccelerated == 1 then
+		inst.components.equippable.walkspeedmult = 1.25
+	else
+		inst.components.equippable.walkspeedmult = 1
 	end
 end
 
@@ -42,15 +59,7 @@ local function fn()
 
 	inst:AddTag("sharp") -- 武器的标签跟攻击方式跟攻击音效有关 没有特殊的话就用这两个
 	inst:AddTag("pointy")
-	inst:AddTag("greensword")
-	inst:AddTag("genshin_sword")
 	inst:AddTag("nosteal")
-
-	-- 元素反应兼容
-	inst:AddTag("subtextweapon")
-	inst.subtext = "crit_rate"
-	inst.subnumber = "44.1%"
-	inst.description = "护国的无垢之心"
 
 	inst.entity:SetPristine()
 
@@ -77,6 +86,11 @@ local function fn()
 	inst.components.equippable:SetOnEquip(onequip)
 	inst.components.equippable:SetOnUnequip(onunequip)
 	inst.components.equippable.walkspeedmult = 1 -- 加速
+	inst:AddComponent("refinement")
+	inst.components.refinement:AddRefineable("greengem", 0, nil)
+	inst.components.refinement:AddRefineable("walrus_tusk", 0, 1)
+	inst.components.refinement:AddRefineable("keqing_pjc", 1, 5)
+	inst.components.refinement:SetOnRefine(onrefine)
 
 	MakeHauntableLaunch(inst)
 

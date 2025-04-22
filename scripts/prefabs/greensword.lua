@@ -21,9 +21,6 @@ local function onequip(inst, owner) -- 装备
 			owner.components.health.maxhealth * (0.2 + inst["greengemnum"] * 0.02)
 		)
 	end
-	-- if owner.components.combat.external_critical_rate_multipliers ~= nil then
-	-- 	owner.components.combat.external_critical_rate_multipliers:SetModifier(inst, 0.441, "all_permanent")
-	-- end
 	if owner.components.stats_manager ~= nil then
 		owner.components.stats_manager.crit:SetModifier(inst, 0.441)
 	end
@@ -120,10 +117,6 @@ local function onspell(inst, target, mousepos)
 	end
 end
 
-local function cancastfn()
-	return true
-end
-
 local function fn()
 	local inst = CreateEntity()
 
@@ -175,23 +168,6 @@ local function fn()
 	inst:AddComponent("planardamage") --位面伤害
 	inst.components.planardamage:SetBaseDamage(0)
 
-	--inst:AddComponent("finiteuses") -- 添加有限耐久组件，按次数算
-	--inst.components.finiteuses:SetMaxUses(1) -- 设置最大耐久MaxUse
-	--inst.components.finiteuses:SetUses(1) -- 设置当前耐久CanUse
-	--if inst.components.finiteuses.current < 0 then
-	--inst.components.finiteuses.current = 0
-	--end
-	--inst.components.finiteuses:SetOnFinished(inst.Remove)
-
-	inst:AddComponent("spellcaster") --施法者组件  鼠标右键使用
-	inst.components.spellcaster:SetSpellFn(onspell) --绑定方法
-	inst.components.spellcaster:SetCanCastFn(cancastfn)
-	inst.components.spellcaster.canuseontargets = true
-	inst.components.spellcaster.canuseondead = true
-	inst.components.spellcaster.canuseonpoint = true
-	inst.components.spellcaster.canuseonpoint_water = true
-	inst.components.spellcaster.canusefrominventory = false
-	inst.components.spellcaster.veryquickcast = true
 	--- no longer used
 	-- inst:AddComponent("kq_crit")
 	-- inst.components.kq_crit:SetCrit(0.441)
