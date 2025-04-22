@@ -189,7 +189,7 @@ local component_actions = {
 		component = "inventoryitem",
 		tests = {
 			{
-				action = "KQUPGRADEHAIRPINS", -- 赋予不朽之力
+				action = "KQUPGRADEHAIRPINS", -- 发簪升级
 				testfn = function(inst, doer, target, actions, right)
 					local flag = ITEMS[inst.prefab]
 					if flag ~= nil and target.prefab == "kq_hairpins" and target[flag] ~= 1 then

@@ -1,5 +1,5 @@
 require("prefabutil")
-
+-- 盘岩结绿
 local assets = {
 	Asset("ANIM", "anim/greensword.zip"), -- 地上的动画
 	Asset("ANIM", "anim/swap_greensword.zip"), -- 手里的动画
@@ -13,16 +13,16 @@ local function onequip(inst, owner) -- 装备
 	owner.AnimState:OverrideSymbol("swap_object", "swap_greensword", "swap_greensword") -- 第三个参数是放动画贴图的文件夹的名字
 	owner.AnimState:Show("ARM_carry")
 	owner.AnimState:Hide("ARM_normal")
-	if owner.components.damage_bonus_manager ~= nil then
-		owner.components.damage_bonus_manager.crit:SetModifier(inst, 0.441)
+	if owner.components.stats_manager ~= nil then
+		owner.components.stats_manager.crit:SetModifier(inst, 0.441)
 	end
 end
 
 local function onunequip(inst, owner) -- 解除装备
 	owner.AnimState:Hide("ARM_carry")
 	owner.AnimState:Show("ARM_normal")
-	if owner.components.damage_bonus_manager ~= nil then
-		owner.components.damage_bonus_manager.crit:RemoveModifier(inst)
+	if owner.components.stats_manager ~= nil then
+		owner.components.stats_manager.crit:RemoveModifier(inst)
 	end
 end
 

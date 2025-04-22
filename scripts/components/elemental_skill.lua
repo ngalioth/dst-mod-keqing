@@ -1,96 +1,3 @@
-local SKILL_MULT_DATA = {
-	{ -- LV1
-		thunder_wedge_damage = 50.0, -- 雷楔伤害
-		slash_damage = 168, -- 斩击伤害
-		thunderstorm_slash_damage = 84.0 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV2
-		thunder_wedge_damage = 54.2, -- 雷楔伤害
-		slash_damage = 181, -- 斩击伤害
-		thunderstorm_slash_damage = 90.3 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV3
-		thunder_wedge_damage = 58.0, -- 雷楔伤害
-		slash_damage = 193, -- 斩击伤害
-		thunderstorm_slash_damage = 96.6 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV4
-		thunder_wedge_damage = 63.0, -- 雷楔伤害
-		slash_damage = 210, -- 斩击伤害
-		thunderstorm_slash_damage = 105 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV5
-		thunder_wedge_damage = 66.8, -- 雷楔伤害
-		slash_damage = 223, -- 斩击伤害
-		thunderstorm_slash_damage = 111 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV6
-		thunder_wedge_damage = 70.6, -- 雷楔伤害
-		slash_damage = 235, -- 斩击伤害
-		thunderstorm_slash_damage = 118 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV7
-		thunder_wedge_damage = 75.6, -- 雷楔伤害
-		slash_damage = 252, -- 斩击伤害
-		thunderstorm_slash_damage = 126 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV8
-		thunder_wedge_damage = 80.6, -- 雷楔伤害
-		slash_damage = 269, -- 斩击伤害
-		thunderstorm_slash_damage = 134 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV9
-		thunder_wedge_damage = 86.0, -- 雷楔伤害
-		slash_damage = 286, -- 斩击伤害
-		thunderstorm_slash_damage = 143 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV10
-		thunder_wedge_damage = 90.7, -- 雷楔伤害
-		slash_damage = 302, -- 斩击伤害
-		thunderstorm_slash_damage = 151 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV11
-		thunder_wedge_damage = 95.8, -- 雷楔伤害
-		slash_damage = 319, -- 斩击伤害
-		thunderstorm_slash_damage = 160 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV12
-		thunder_wedge_damage = 101.0, -- 雷楔伤害
-		slash_damage = 336, -- 斩击伤害
-		thunderstorm_slash_damage = 168 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV13
-		thunder_wedge_damage = 107.0, -- 雷楔伤害
-		slash_damage = 357, -- 斩击伤害
-		thunderstorm_slash_damage = 179 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV14
-		thunder_wedge_damage = 113.0, -- 雷楔伤害
-		slash_damage = 378, -- 斩击伤害
-		thunderstorm_slash_damage = 189 * 2, -- 雷暴连斩伤害
-		cooldown_time = 7.5, -- 冷却时间
-	},
-	{ -- LV15
-		thunder_wedge_damage = 120.0, -- 假设雷楔伤害 (没有明确提供)
-		slash_damage = 400, -- 假设斩击伤害 (没有明确提供)
-		thunderstorm_slash_damage = 200 * 2, -- 假设雷暴连斩伤害 (没有明确提供)
-		cooldown_time = 7.5, -- 冷却时间
-	},
-}
-
 local function onCurrentCdChange(self, current_cd)
 	self.inst.replica.elemental_skill:SetCurrentCd(current_cd)
 end
@@ -102,14 +9,15 @@ end
 local Elemental_Skill = Class(
 	function(self, inst)
 		self.inst = inst
+		self.curren_stiletto = nil -- 存储雷楔的ins引用，仅在state为true时有效
 		self.skill_cd = 7.5 -- 默认冷却时间 7.5s 释放state进入2,5s内释放第二段，否则直接转回状态0，雷楔失效 当然可选引爆直接转回状态0
 		self.current_cd = 0.0 -- 当前冷却时间
 		self.state = false -- 技能状态 处理二段战技 不进行保存
 	end,
 	nil,
 	{
-		current_cd = onCurrentCdChange,
-		state = onStateChange,
+		current_cd = onCurrentCdChange, -- 技能剩余cd
+		state = onStateChange, -- 特殊状态 仅true false
 	}
 )
 function Elemental_Skill:OnSave()
@@ -134,5 +42,51 @@ function Elemental_Skill:OnUpdate(dt)
 	if self.current_cd <= 0 then
 		self.current_cd = 0
 		self.inst:StopUpdatingComponent(self)
+	end
+end
+function Elemental_Skill:StartCd()
+	self.current_cd = self.skill_cd
+	self.inst:StartUpdatingComponent(self)
+end
+function Elemental_Skill:DoSkill()
+	local thunder_wedge_damage = 50.0 / 100
+	local slash_damage = 168 / 100
+	local thunderstorm_slash_damage = 84 / 100
+
+	local thunder_wedge_range = 2
+
+	local slash_range = 2
+	local thunderstorm_slash_range = 10
+
+	local range = 2
+	if self.state == false and self.current_stiletto == nil then
+		local stiletto = SpawnPrefab("leixie")
+		stiletto.entity:SetParent(self.inst.entity)
+		self.current_stiletto = stiletto
+		self.state = true
+		self:StartCd()
+		local pos = self.inst:GetPosition()
+		stiletto.Transform:SetPosition(pos.x, pos.y, pos.z)
+		self.inst.components.keqing_aoe_dmg:DoAoeAttack(thunder_wedge_damage, thunder_wedge_range, pos.x, pos.y, pos.z)
+	end
+	if self.state == true and self.current_stiletto ~= nil then
+		local stiletto = self.current_stiletto
+		self.current_stiletto = nil
+		self.state = false
+		local target_pos = stiletto:GetPosition()
+		if self.inst.Physics then
+			stiletto:Remove()
+			self.inst.Physics:Teleport(target_pos.x, target_pos.y, target_pos.z)
+			local fx = SpawnPrefab("kq_skill_fx")
+			fx.Transform:SetPosition(target_pos.x, target_pos.y, target_pos.z)
+			self.inst.components.keqing_aoe_dmg:DoAoeAttack(
+				slash_damage,
+				slash_range,
+				target_pos.x,
+				target_pos.y,
+				target_pos.z
+			)
+			self.state = false
+		end
 	end
 end

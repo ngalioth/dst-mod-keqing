@@ -4,7 +4,7 @@ PrefabFiles = {
 	"kq_food",
 	"kq_specialfish", -- 绝境求生烤鱼
 	"kq_liyuepot", --锅
-	-- "greensword", --绿剑
+	"greensword", --绿剑
 	"kq_shrimp", -- 虾
 	"kq_amber", -- 石珀
 	"kq_foodbag", -- 便携营养袋
@@ -222,6 +222,11 @@ GLOBAL.setmetatable(env, {
 })
 
 GLOBAL.SoraAPI = env
+
+require("tuning_keqing")
+TUNING_KEQING.SKILL_KEY = GetModConfigData("skill")
+TUNING_KEQING.BURST_KEY = GetModConfigData("burst")
+
 modimport("scripts/skins.lua")
 
 modimport("main/strings.lua")
@@ -233,26 +238,6 @@ AddMinimapAtlas("images/map_icons/kq_lightamber.xml") --增加小地图图标
 
 --增加人物到mod人物列表的里面 性别为女性（MALE, FEMALE, ROBOT, NEUTRAL, and PLURAL）
 AddModCharacter("keqing", "FEMALE")
-
---三维
-TUNING.KEQING_HEALTH = 120
-TUNING.KEQING_HUNGER = 175
-TUNING.KEQING_SANITY = 200
---TUNING.KEQING_SHOWTAIL = GetModConfigData("showtail")
---技能控件
-TUNING.KEQING_SKILL_KEY = GetModConfigData("skill")
-TUNING.KEQING_BURST_KEY = GetModConfigData("burst")
---初始物品
-TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING = { "kq_hairpins" }
-TUNING.STARTING_ITEM_IMAGE_OVERRIDE.greensword = {
-	atlas = "images/inventoryimages/greensword.xml",
-	image = "greensword.tex",
-}
-
-TUNING.STARTING_ITEM_IMAGE_OVERRIDE.kq_hairpins = {
-	atlas = "images/inventoryimages/kq_hairpins.xml",
-	image = "kq_hairpins.tex",
-}
 
 -- 添加技能的UI
 local skill = require("widgets/skill")

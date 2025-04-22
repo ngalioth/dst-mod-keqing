@@ -21,16 +21,22 @@ local function onequip(inst, owner) -- 装备
 			owner.components.health.maxhealth * (0.2 + inst["greengemnum"] * 0.02)
 		)
 	end
-	if owner.components.combat.external_critical_rate_multipliers ~= nil then
-		owner.components.combat.external_critical_rate_multipliers:SetModifier(inst, 0.441, "all_permanent")
+	-- if owner.components.combat.external_critical_rate_multipliers ~= nil then
+	-- 	owner.components.combat.external_critical_rate_multipliers:SetModifier(inst, 0.441, "all_permanent")
+	-- end
+	if owner.components.stats_manager ~= nil then
+		owner.components.stats_manager.crit:SetModifier(inst, 0.441)
 	end
 end
 
 local function onunequip(inst, owner) -- 解除装备
 	owner.AnimState:Hide("ARM_carry")
 	owner.AnimState:Show("ARM_normal")
-	if owner.components.combat.external_critical_rate_multipliers ~= nil then
-		owner.components.combat.external_critical_rate_multipliers:RemoveModifier(inst)
+	-- if owner.components.combat.external_critical_rate_multipliers ~= nil then
+	-- 	owner.components.combat.external_critical_rate_multipliers:RemoveModifier(inst)
+	-- end
+	if owner.components.stats_manager ~= nil then
+		owner.components.stats_manager.crit:RemoveModifier(inst)
 	end
 end
 
@@ -186,10 +192,10 @@ local function fn()
 	inst.components.spellcaster.canuseonpoint_water = true
 	inst.components.spellcaster.canusefrominventory = false
 	inst.components.spellcaster.veryquickcast = true
-
-	inst:AddComponent("kq_crit")
-	inst.components.kq_crit:SetCrit(0.441)
-	inst.components.kq_crit:SetCritdmg(0)
+	--- no longer used
+	-- inst:AddComponent("kq_crit")
+	-- inst.components.kq_crit:SetCrit(0.441)
+	-- inst.components.kq_crit:SetCritdmg(0)
 
 	inst:AddComponent("trader") -- 可塞物品
 	inst.components.trader:SetAcceptTest(ongiveitem)

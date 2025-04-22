@@ -9,6 +9,7 @@ local start_inv = TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING
 
 local exclude_tags = { "INLIMBO", "companion", "wall", "abigail", "player", "chester" }
 
+local EMPTY_TABLE = {}
 -- 当人物复活的时候
 local function onbecamehuman(inst)
 	-- 设置人物的移速（1表示1倍于wilson）
@@ -52,6 +53,37 @@ local function fryfish(inst, radius)
 				ent:Remove()
 			end
 		end
+	end
+end
+--------------------------------------------------------------------------
+
+--pos: double click coords; nil when double tapping direction instead of mouse
+--dir: WASD/analog dir; nil if neutral (NOTE: this may be in a different direction than pos!)
+--target: double click mouseover target; nil when tapping direction instead of mouse
+--remote: only pos2 is sent to server, similar to actions that are aimed toward reticule pos、
+local function GetDoubleClickActions(inst, pos, dir, target)
+	-- love from woby
+	--- 过后设置一个变量控制开关吧
+	-- if true then
+	-- 	local pos2
+	-- 	if dir then
+	-- 		pos2 = inst:GetPosition()
+	-- 		pos2.x = pos2.x + dir.x * 10
+	-- 		pos2.y = 0
+	-- 		pos2.z = pos2.z + dir.z * 10
+	-- 	elseif target then
+	-- 		pos2 = target:GetPosition()
+	-- 		pos2.y = 0
+	-- 	end
+	-- 	return { ACTIONS.DASH }, pos2
+	-- end
+	return EMPTY_TABLE
+end
+
+local function OnSetOwner(inst)
+	if inst.components.playeractionpicker then
+		inst.components.playeractionpicker.doubleclickactionsfn = GetDoubleClickActions
+		-- inst.components.playeractionpicker.pointspecialactionsfn = GetPointSpecialActions
 	end
 end
 
@@ -222,15 +254,15 @@ AddModRPCHandler("keqing", "skill", ElementalSkill)
 AddModRPCHandler("keqing", "burst", ElementalBurst)
 -- 这俩暴击独立计算了，需要额外处理，神经暴击机制
 local function CustomCombatDamage(inst, target, weapon, multiplier, mount)
-	if inst.components.damage_bonus_manager ~= nil then
-		return inst.components.damage_bonus_manager:GetDamageBonus()
+	if inst.components.stats_manager ~= nil then
+		return inst.components.stats_manager:GetDamageBonus()
 	end
 
 	return 1
 end
 local function CustomSPCombatDamage(inst, target, weapon, multiplier, mount)
-	if inst.components.damage_bonus_manager ~= nil then
-		return inst.components.damage_bonus_manager:GetSpDamageBonus()
+	if inst.components.stats_manager ~= nil then
+		return inst.components.stats_manager:GetSpDamageBonus()
 	end
 	return 1
 end
@@ -245,11 +277,13 @@ local common_postinit = function(inst)
 	inst:AddTag("sword_class")
 	inst:AddTag("genshin_character")
 	--- 大概后续要移除，无条件作书显示不合适
-	inst:AddTag("bookbuilder") -- 可以做书？
+	-- inst:AddTag("bookbuilder") -- 可以做书？
 	inst:AddTag("reader") -- 可以读书
 	--- 这个显然也不太合适
-	inst:AddTag("stronggrip") -- 武器工具不脱手
+	-- inst:AddTag("stronggrip") -- 武器工具不脱手
 	inst:AddTag("kqhairpin_user")
+
+	inst:ListenForEvent("setowner", OnSetOwner)
 
 	inst.skillcd = 7.5
 	inst.burstcd = 12
@@ -261,16 +295,12 @@ local common_postinit = function(inst)
 	-- 添加元素能量组件
 	inst:AddComponent("EleEnergy")
 	inst.components.EleEnergy:SetMax(40)
-	-- 双爆组件
-	inst:AddComponent("kq_crit")
-	inst.components.kq_crit:SetCrit(0.05) -- 暴击率
-	inst.components.kq_crit:SetCritdmg(0.884) -- 暴击伤害
 	-- 按键组件
 	inst:AddComponent("key")
 	-- 元素战技组件
-	inst.components.key:Press(_G[TUNING.KEQING_SKILL_KEY], "skill")
+	inst.components.key:Press(_G[TUNING_KEQING.SKILL_KEY], "skill")
 	-- 元素爆发组件
-	inst.components.key:Press(_G[TUNING.KEQING_BURST_KEY], "burst")
+	inst.components.key:Press(_G[TUNING_KEQING.BURST_KEY], "burst")
 end
 
 -- 这里的的函数只在主机执行  一般组件之类的都写在这里
@@ -278,16 +308,16 @@ local master_postinit = function(inst)
 	-- 人物音效
 	inst.soundsname = "wendy"
 	-- 三维
-	inst.components.health:SetMaxHealth(TUNING.KEQING_HEALTH)
-	inst.components.hunger:SetMax(TUNING.KEQING_HUNGER)
-	inst.components.sanity:SetMax(TUNING.KEQING_SANITY)
+	inst.components.health:SetMaxHealth(TUNING_KEQING.HEALTH)
+	inst.components.hunger:SetMax(TUNING_KEQING.HUNGER)
+	inst.components.sanity:SetMax(TUNING_KEQING.SANITY)
 	-- 伤害系数
 	inst.components.combat.damagemultiplier = 1
 	--- 技能组件
 	inst:AddComponent("keqing_aoe_dmg")
 	inst:AddComponent("elemental_burst")
 	--- 管理角色暴击和增伤
-	inst:AddComponent("damage_bonus_manager")
+	inst:AddComponent("stats_manager")
 	-- 自定义加成，算暴击和增伤
 	inst.components.combat.customdamagemultfn = CustomCombatDamage
 	inst.components.combat.customspdamagemultfn = CustomSPCombatDamage
