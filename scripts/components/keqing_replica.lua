@@ -39,11 +39,11 @@ end
 function Keqing:OnRemoveEntity()
 	if self.classified ~= nil then
 		if TheWorld.ismastersim then
-			if self.opentask ~= nil then
-				self.opentask:Cancel()
-				self.opentask = nil
-			end
-			self.inst.components.inventory:Close(true)
+			-- if self.opentask ~= nil then
+			-- 	self.opentask:Cancel()
+			-- 	self.opentask = nil
+			-- end
+			-- self.inst.components.inventory:Close(true)
 			self.classified:Remove()
 			self.classified = nil
 		else

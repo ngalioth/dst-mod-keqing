@@ -2,7 +2,9 @@ local MakePlayerCharacter = require("prefabs/player_common")
 
 local assets = { Asset("SCRIPT", "scripts/prefabs/player_common.lua") }
 
-local prefabs = {}
+local prefabs = {
+	"keqing_classified",
+}
 
 -- 初始物品
 local start_inv = TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING
