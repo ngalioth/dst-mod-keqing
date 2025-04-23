@@ -34,60 +34,45 @@ function Refinement:AddRefineable(prefab, startValue, maxValue)
 	}
 end
 function Refinement:GetRefineLevel(prefab)
-	if self.record[prefab] == nil then
-		return 0
-	end
-	return self.record[prefab].current
+	return (self.record[prefab] and self.record[prefab].current) or 0
 end
 
 function Refinement:SetOnRefine(fn)
 	self.onrefine = fn
 end
 function Refinement:CanAcceptItem(prefab_name)
-	if self.record[prefab_name] == nil then
-		return false
-	end
-	if self.record[prefab_name].max == nil then
-		return true
-	end
-	if self.record[prefab_name].current >= self.record[prefab_name].max then
-		return false
-	end
-	return true
+	local item = self.record[prefab_name]
+	return item ~= nil and (item.max == nil or item.current < item.max) or false
 end
 function Refinement:DoRefine(obj, doer)
-	if self:CanAcceptItem(obj.prefab) then
-		--- 精练 向后合并record表
-		if self.inst.prefab == obj.prefab then
-			for k, v in pairs(obj.components.refinement.record) do
-				local item = self.record[k]
-				if item == nil then
-					self.record[k] = {
-						current = v.current,
-						max = v.max,
-					}
+	local prefab = obj.prefab
+	if not self:CanAcceptItem(prefab) then
+		return false
+	end
+	--- 精练 向后合并record表
+	if self.inst.prefab == prefab then
+		for k, v in pairs(obj.components.refinement.record) do
+			local item = self.record[k]
+			if not item then
+				self.record[k] = { current = v.current, max = v.max }
+			else
+				if item.max ~= nil then
+					item.current = math.min(item.current + v.current, item.max)
 				else
-					item.current = item.max ~= nil and math.min(item.current + v.current, item.max)
-						or (item.current + v.current)
+					item.current = item.current + v.current
 				end
 			end
-			if self.onrefine ~= nil then
-				self.onrefine(self.inst, doer, obj)
-			end
-			return true
-		else -- 升级或者解锁逻辑
-			local prefab = obj.prefab
-			local record = self.record[prefab]
-			-- 这里不能交换，nil无上限或者有上限且小于最大时才执行
-			if record.max == nil or record.current < record.max then
-				record.current = record.current + 1
-			end
-			if self.onrefine ~= nil then
-				self.onrefine(self.inst, doer, obj)
-			end
-			return true
+		end
+	else -- 升级或者解锁逻辑
+		local record = self.record[prefab]
+		-- 这里不能交换，nil无上限或者有上限且小于最大时才执行
+		if record.max == nil or record.current < record.max then
+			record.current = record.current + 1
 		end
 	end
-	return false
+	if self.onrefine ~= nil then
+		self.onrefine(self.inst, doer, obj)
+	end
+	return true
 end
 return Refinement
