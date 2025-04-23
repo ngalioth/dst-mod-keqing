@@ -30,12 +30,30 @@
 --Client interface
 --------------------------------------------------------------------------
 --Triggered on clients immediately after initial deserialization of tags from construction
+local function OnRemoveEntity(inst)
+	if inst._parent ~= nil then
+		inst._parent.keqing_classified = nil
+	end
+end
 local function OnEntityReplicated(inst)
 	inst._parent = inst.entity:GetParent()
 	if inst._parent == nil then
-		print("Unable to initialize classified data for keqing")
+		moderror("Unable to initialize classified data for keqing", level)
+
+		--- 实际上客户端由于classifedTarget的设置，只能由classified主动调用parent的attach
+		-- 这里尝试调用parent的 cmp:AttachClassified 我这里默认是keqing cmp
 	else
-		inst._parent:AttachClassified(inst)
+		--- 由于需要绑定过多组件，延迟0s保证生效
+		inst:DoStaticTaskInTime(0, function(inst)
+			-- 这里分别调用对应组件的AttachClassified
+			for i, v in ipairs({ "keqing", "elemental_burst" }) do
+				print("Try to attach classified to parent component: " .. v)
+				inst._parent:TryAttachClassifiedToReplicaComponent(inst, v)
+			end
+			inst._parent.keqing_classified = inst
+		end)
+		-- 客户端replicate时主动调用parent组件的AttachClassified 必须
+		inst.OnRemoveEntity = OnRemoveEntity
 	end
 end
 
@@ -59,6 +77,8 @@ local function fn()
 	inst.entity:AddNetwork()
 	inst.entity:Hide()
 	inst:AddTag("CLASSIFIED")
+
+	inst.is_dash_enabled = net_bool(inst.GUID, "keqing_classified.is_dash_enabled", "is_dash_enabled_dirty")
 
 	inst.crit = net_float(inst.GUID, "keqing_classified.crit", "crit_dirty")
 	inst.crit_dmg = net_float(inst.GUID, "keqing_classified.crit_dmg", "crit_dmg_dirty")

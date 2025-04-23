@@ -1,18 +1,23 @@
 --------------------------------------------------------------------------
 local Keqing = Class(function(self, inst)
 	self.inst = inst
-
-	--[[ 主机初始化 ]]
+	-- 该replica同时负责classified的创建，主机上可以通过ins.keqing_classified访问,客机只能访问
 	if TheWorld.ismastersim then
 		if inst:HasTag("player") then
-			self.classified = SpawnPrefab("keqing_classified")
+			inst.keqing_classified = SpawnPrefab("keqing_classified")
+			inst.keqing_classified.delayclientdespawn = true
+			self.classified = inst.keqing_classified
 			-- 因为这个classified是必然链接的，所以也不用考虑太多。或许ghost状态要考虑一下？但也可以其他方式禁用
 			self.classified.entity:SetParent(inst.entity)
+			-- 该实体只需要和当前player交互
+			-- self.classified.Network:SetClassifiedTarget(inst)
 		end
 	elseif self.classified == nil and inst.keqing_classified ~= nil then
 		self.classified = inst.keqing_classified
-		inst.keqing_classified.OnRemoveEntity = nil
-		inst.keqing_classified = nil
+		--- 参考inventory_replica,但是下面两句没看懂
+		-- 疑似是防止其他组件乱用？
+		-- inst.keqing_classified.OnRemoveEntity = nil
+		-- inst.keqing_classified = nil
 		self:AttachClassified(self.classified)
 	end
 end)
@@ -23,7 +28,8 @@ function Keqing:AttachClassified(classified)
 	self.ondetachclassified = function()
 		self:DetachClassified()
 	end
-	self.inst:ListenForEvent("onremove", self.ondetachclassified, classified)
+	self.inst:ListenForEvent("onremove", self.ondetachclassified, self.classified)
+	-- 实体监听classified，在classified移除之前要先detach
 
 	-- self.inst:ListenForEvent("visibledirty", OnVisibleDirty, classified)
 	-- self.inst:ListenForEvent("heavyliftingdirty", OnHeavyLiftingDirty, classified)
@@ -39,11 +45,6 @@ end
 function Keqing:OnRemoveEntity()
 	if self.classified ~= nil then
 		if TheWorld.ismastersim then
-			-- if self.opentask ~= nil then
-			-- 	self.opentask:Cancel()
-			-- 	self.opentask = nil
-			-- end
-			-- self.inst.components.inventory:Close(true)
 			self.classified:Remove()
 			self.classified = nil
 		else
@@ -53,3 +54,10 @@ function Keqing:OnRemoveEntity()
 		end
 	end
 end
+
+function Keqing:EnableDash()
+	if self.classified ~= nil then
+		self.classified.is_dash_enabled:set(true)
+	end
+end
+return Keqing

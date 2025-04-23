@@ -81,11 +81,15 @@ local function GetDoubleClickActions(inst, pos, dir, target)
 	-- end
 	return EMPTY_TABLE
 end
-
+-- onsetowner 似乎是实例化完成过后？反正这些操作必须在该事件后进行
 local function OnSetOwner(inst)
 	if inst.components.playeractionpicker then
 		inst.components.playeractionpicker.doubleclickactionsfn = GetDoubleClickActions
 		-- inst.components.playeractionpicker.pointspecialactionsfn = GetPointSpecialActions
+	end
+	-- 其实倒也不是classified没实例化，是inst没有，如果是nil直接加就行了，例如lucy
+	if inst.keqing_classified then
+		inst.keqing_classified.Network:SetClassifiedTarget(inst)
 	end
 end
 
@@ -284,7 +288,7 @@ local common_postinit = function(inst)
 	--- 这个显然也不太合适
 	-- inst:AddTag("stronggrip") -- 武器工具不脱手
 	inst:AddTag("kqhairpin_user")
-
+	--- 添加一些自定义动作 shift
 	inst:ListenForEvent("setowner", OnSetOwner)
 
 	inst.skillcd = 7.5
@@ -303,6 +307,7 @@ local common_postinit = function(inst)
 	inst.components.key:Press(_G[TUNING_KEQING.SKILL_KEY], "skill")
 	-- 元素爆发组件
 	inst.components.key:Press(_G[TUNING_KEQING.BURST_KEY], "burst")
+	--- 添加一些自定义动作
 end
 
 -- 这里的的函数只在主机执行  一般组件之类的都写在这里
@@ -336,6 +341,8 @@ local master_postinit = function(inst)
 	inst.lx = nil
 
 	inst:AddComponent("reader")
+
+	inst:AddComponent("keqing")
 
 	if inst.components.workmultiplier == nil then
 		inst:AddComponent("workmultiplier") -- 增加工作效率

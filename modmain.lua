@@ -31,6 +31,7 @@ PrefabFiles = {
 	"keqing_fx",
 	"keqing_buff",
 	"keqing_pjc",
+	"keqing_classified",
 }
 
 ---对比老版本 主要是增加了names图片 人物检查图标 还有人物的手臂修复（增加了上臂）
@@ -248,7 +249,8 @@ AddClassPostConstruct("widgets/controls", function(self)
 		self.burst = self:AddChild(burst(self.owner))
 	end
 end)
-
+AddReplicableComponent("keqing")
+AddReplicableComponent("elemental_burst")
 modimport("main/recipes.lua")
 -- modimport('main/uidrag.lua')
 modimport("main/stategraphs.lua")
