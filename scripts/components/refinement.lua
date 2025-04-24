@@ -1,8 +1,14 @@
+
 local Refinement = Class(function(self, inst)
 	self.inst = inst
 	self.record = {}
 	self.onrefine = nil
-end)
+    self.inst:AddTag("refinement")
+end,nil,nil)
+
+function Refinement:OnRecordDirty()
+    self.inst.replica.refinement._record:set(json.encode(self.record))
+end
 function Refinement:OnSave()
 	local rec = json.encode(self.record)
 	dumptable(rec)
@@ -15,13 +21,14 @@ function Refinement:OnLoad(data)
 	if data then
 		if data.record then
 			self.record = json.decode(data.record)
-			dumptable(self.record)
 		end
 	end
+    self:OnRecordDirty()
 	-- 由于外部无法保存部分数据，这里加载时重新赋值
 	if self.onrefine ~= nil then
 		self.onrefine(self.inst)
 	end
+
 end
 
 function Refinement:AddRefineable(prefab, startValue, maxValue)
@@ -32,6 +39,7 @@ function Refinement:AddRefineable(prefab, startValue, maxValue)
 		current = startValue,
 		max = maxValue or nil, -- nil表示无上限
 	}
+    self:OnRecordDirty()
 end
 function Refinement:GetRefineLevel(prefab)
 	return (self.record[prefab] and self.record[prefab].current) or 0
@@ -46,9 +54,9 @@ function Refinement:CanAcceptItem(prefab_name)
 end
 function Refinement:DoRefine(obj, doer)
 	local prefab = obj.prefab
-	if not self:CanAcceptItem(prefab) then
-		return false
-	end
+	-- if not self:CanAcceptItem(prefab) then
+	-- 	return false
+	-- end
 	--- 精练 向后合并record表
 	if self.inst.prefab == prefab then
 		for k, v in pairs(obj.components.refinement.record) do
@@ -73,6 +81,7 @@ function Refinement:DoRefine(obj, doer)
 	if self.onrefine ~= nil then
 		self.onrefine(self.inst, doer, obj)
 	end
+    self:OnRecordDirty()
 	return true
 end
 return Refinement

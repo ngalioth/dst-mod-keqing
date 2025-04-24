@@ -65,6 +65,10 @@ STRINGS.CHARACTERS.GENERIC.DESCRIBE.GREENSWORD = "血洗的碧绿剑锋依然闪
 STRINGS.RECIPE_DESC.GREENSWORD = "翠玉琢成之剑" -- 物品的制作描述
 STRINGS.ACTIONS.CASTSPELL.GREENSWORD = "滑铲！" -- ?
 
+STRINGS.NAMES.KEQING_PJC = "磐岩结绿" -- 物体在游戏中显示的名字
+STRINGS.CHARACTERS.GENERIC.DESCRIBE.KEQING_PJC = " 护国的无垢之心-基于装备该武器的角色生命值上限获得攻击力加成。" -- 按alt检查时人物说的话
+STRINGS.RECIPE_DESC.KEQING_PJC = "由纯净的翠玉精琢细雕而成的仪礼宝剑，挥舞时剑风中似有叹息之声。" -- 物品的制作描述
+
 STRINGS.NAMES.KQ_SHRIMP = "虾" -- 物体在游戏中显示的名字
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.KQ_SHRIMP = "画风像是沃拓克斯从隔壁搬过来的。" -- 按alt检查时人物说的话
 

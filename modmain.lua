@@ -249,11 +249,12 @@ AddClassPostConstruct("widgets/controls", function(self)
 		self.burst = self:AddChild(burst(self.owner))
 	end
 end)
-AddReplicableComponent("keqing")
-AddReplicableComponent("elemental_burst")
+
 modimport("main/recipes.lua")
 -- modimport('main/uidrag.lua')
 modimport("main/stategraphs.lua")
 modimport("main/postinits.lua")
-modimport("scripts/main.lua")
-modimport("scripts/sg.lua")
+
+modimport("scripts/defs/replica.lua")
+modimport("scripts/defs/action.lua")
+modimport("scripts/defs/sg.lua")
