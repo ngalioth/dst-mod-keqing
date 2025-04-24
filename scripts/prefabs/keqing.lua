@@ -84,7 +84,7 @@ end
 -- onsetowner 似乎是实例化完成过后？反正这些操作必须在该事件后进行
 local function OnSetOwner(inst)
 	if inst.components.playeractionpicker then
-		inst.components.playeractionpicker.doubleclickactionsfn = GetDoubleClickActions
+		-- inst.components.playeractionpicker.doubleclickactionsfn = GetDoubleClickActions
 		-- inst.components.playeractionpicker.pointspecialactionsfn = GetPointSpecialActions
 	end
 	-- 其实倒也不是classified没实例化，是inst没有，如果是nil直接加就行了，例如lucy
@@ -255,6 +255,18 @@ local function update(inst)
 	end
 end
 
+AddModRPCHandler("keqing", "command", function(player, cmd)
+	if not checkuint(cmd) then
+		printinvalid("KeqingCommand", player)
+		return
+	end
+
+	if player.keqing_classified then
+		player.keqing_classified:ExecuteCommand(cmd)
+	else
+		print("Player cannot use Keqing commands")
+	end
+end)
 -- 添加RPC组件
 AddModRPCHandler("keqing", "skill", ElementalSkill)
 AddModRPCHandler("keqing", "burst", ElementalBurst)
@@ -307,7 +319,6 @@ local common_postinit = function(inst)
 	inst.components.key:Press(_G[TUNING_KEQING.SKILL_KEY], "skill")
 	-- 元素爆发组件
 	inst.components.key:Press(_G[TUNING_KEQING.BURST_KEY], "burst")
-	--- 添加一些自定义动作
 end
 
 -- 这里的的函数只在主机执行  一般组件之类的都写在这里

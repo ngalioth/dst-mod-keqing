@@ -5,6 +5,9 @@
 -- local DoSkillAreaDmg = require("lib/utils").DoSkillAreaDmg
 -- 该组件处理cd、能量、冷却时间、技能等级，实际造成伤害在sg
 -- 下线其实保存能量和技能等级就可以了，cd都太短了，没啥意义
+
+-- 这里的数据load要比正常的classified迟一点，否则可能读空气
+--- 或者就换一种方式，数据在这里存储，而不是在classified里面存储，那个只用来同步
 local Elemental_Burst = Class(function(self, inst)
 	self.inst = inst
 	self.level = 1 -- 默认等级
@@ -39,9 +42,6 @@ function Elemental_Burst:OnUpdate(dt)
 	end
 end
 
-function Elemental_Burst:GetSkillCd(cd)
-	return self.current_cd
-end
 function Elemental_Burst:SetSkillCd(cd)
 	if cd == nil then
 		self.current_cd = self.skill_cd

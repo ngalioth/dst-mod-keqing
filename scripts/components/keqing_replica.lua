@@ -1,4 +1,11 @@
 --------------------------------------------------------------------------
+-- 饥荒ent的恢复逻辑
+--- 先创建实体，添加全部组件
+--- 添加data里面可能缺失的组件(flag设置,有个例子是拟态蠕虫)，分别执行添加的组件各个OnLoad,最后实体的OnLoad
+-- 具体的可以参考SpawanSaveRecord
+-- 倒也不用担心会找不到classified的问题了
+-- 由于该组件负责classified初始化，依赖该classified的组件需要在该组件之后初始化
+-- 所以加载必须在该组件之后
 local Keqing = Class(function(self, inst)
 	self.inst = inst
 	-- 该replica同时负责classified的创建，主机上可以通过ins.keqing_classified访问,客机只能访问
@@ -9,7 +16,9 @@ local Keqing = Class(function(self, inst)
 			self.classified = inst.keqing_classified
 			-- 因为这个classified是必然链接的，所以也不用考虑太多。或许ghost状态要考虑一下？但也可以其他方式禁用
 			self.classified.entity:SetParent(inst.entity)
+			self.classified._parent = inst
 			-- 该实体只需要和当前player交互
+			--- 这一步必须在组件实例化结束后执行，否则无效 onsetowner
 			-- self.classified.Network:SetClassifiedTarget(inst)
 		end
 	elseif self.classified == nil and inst.keqing_classified ~= nil then
@@ -55,9 +64,9 @@ function Keqing:OnRemoveEntity()
 	end
 end
 
-function Keqing:EnableDash()
+function Keqing:EnableSprint(enabled)
 	if self.classified ~= nil then
-		self.classified.is_dash_enabled:set(true)
+		self.classified.sprint:set(enabled)
 	end
 end
 return Keqing
