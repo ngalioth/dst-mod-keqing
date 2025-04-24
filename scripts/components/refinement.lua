@@ -1,13 +1,12 @@
-
 local Refinement = Class(function(self, inst)
 	self.inst = inst
 	self.record = {}
 	self.onrefine = nil
-    self.inst:AddTag("refinement")
-end,nil,nil)
+	self.inst:AddTag("refinement")
+end, nil, nil)
 
 function Refinement:OnRecordDirty()
-    self.inst.replica.refinement._record:set(json.encode(self.record))
+	self.inst.replica.refinement._record:set(json.encode(self.record))
 end
 function Refinement:OnSave()
 	local rec = json.encode(self.record)
@@ -23,12 +22,11 @@ function Refinement:OnLoad(data)
 			self.record = json.decode(data.record)
 		end
 	end
-    self:OnRecordDirty()
+	self:OnRecordDirty()
 	-- 由于外部无法保存部分数据，这里加载时重新赋值
 	if self.onrefine ~= nil then
 		self.onrefine(self.inst)
 	end
-
 end
 
 function Refinement:AddRefineable(prefab, startValue, maxValue)
@@ -39,7 +37,7 @@ function Refinement:AddRefineable(prefab, startValue, maxValue)
 		current = startValue,
 		max = maxValue or nil, -- nil表示无上限
 	}
-    self:OnRecordDirty()
+	self:OnRecordDirty()
 end
 function Refinement:GetRefineLevel(prefab)
 	return (self.record[prefab] and self.record[prefab].current) or 0
@@ -81,7 +79,7 @@ function Refinement:DoRefine(obj, doer)
 	if self.onrefine ~= nil then
 		self.onrefine(self.inst, doer, obj)
 	end
-    self:OnRecordDirty()
+	self:OnRecordDirty()
 	return true
 end
 return Refinement

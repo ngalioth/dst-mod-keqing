@@ -1,5 +1,5 @@
 --移除预制物(预制物,数量)
-local function removeItem(item,num)
+local function removeItem(item, num)
 	if item.components.stackable then
 		item.components.stackable:Get(num):Remove()
 	else
@@ -8,11 +8,11 @@ local function removeItem(item,num)
 end
 
 local REFINEMENT = AddAction("REFINEMENT", "通用升级", function(act)
-    if act.invobject and act.doer and act.target then
-        act.target.components.refinement:DoRefine(act.invobject, act.doer)
-        removeItem(act.invobject, 1)
-        return true
-    end
+	if act.invobject and act.doer and act.target then
+		act.target.components.refinement:DoRefine(act.invobject, act.doer)
+		removeItem(act.invobject, 1)
+		return true
+	end
 end)
 REFINEMENT.priority = 10
 REFINEMENT.stroverridefn = function(act)
@@ -46,13 +46,13 @@ end)
 
 --- 兼容行为学，参考勋章
 local queueractlist = {
-    [REFINEMENT.id] = true
+	[REFINEMENT.id] = true,
 }
-local actionqueuer_status,actionqueuer_data = pcall(require,"components/actionqueuer")
+local actionqueuer_status, actionqueuer_data = pcall(require, "components/actionqueuer")
 if actionqueuer_status then
 	if AddActionQueuerAction and next(queueractlist) then
-    	for k,v in pairs(queueractlist) do
-    		AddActionQueuerAction(v,k,true)
-    	end
-    end
+		for k, v in pairs(queueractlist) do
+			AddActionQueuerAction(v, k, true)
+		end
+	end
 end

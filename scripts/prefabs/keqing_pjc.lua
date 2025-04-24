@@ -7,8 +7,6 @@ local assets = {
 	Asset("ATLAS", "images/inventoryimages/greensword.xml"), -- 加载物品栏贴图
 }
 
-
-
 local function onequip(inst, owner) -- 装备
 	owner.AnimState:OverrideSymbol("swap_object", "swap_greensword", "swap_greensword") -- 第三个参数是放动画贴图的文件夹的名字
 	owner.AnimState:Show("ARM_carry")
@@ -37,17 +35,16 @@ end
 local function onrefine(inst)
 	local greengem_num = inst.components.refinement:GetRefineLevel("greengem")
 	local isAccelerated = inst.components.refinement:GetRefineLevel("walrus_tusk")
-    local refinelevel = inst.components.refinement:GetRefineLevel("keqing_pjc")
+	local refinelevel = inst.components.refinement:GetRefineLevel("keqing_pjc")
 	inst.components.planardamage:SetBaseDamage(greengem_num * 5)
 	if isAccelerated == 1 then
 		inst.components.equippable.walkspeedmult = 1.25
 	else
 		inst.components.equippable.walkspeedmult = 1
 	end
-    local basename = STRINGS.NAMES.KEQING_PJC.." 精练"..refinelevel.."阶"
-    local str = "绿"..greengem_num
-    inst.components.named:SetName(basename.."\n"..str)
-
+	local basename = STRINGS.NAMES.KEQING_PJC .. " 精练" .. refinelevel .. "阶"
+	local str = "绿" .. greengem_num
+	inst.components.named:SetName(basename .. "\n" .. str)
 end
 
 local function fn()
@@ -74,7 +71,7 @@ local function fn()
 		return inst
 	end
 
-    inst:AddComponent("named")
+	inst:AddComponent("named")
 
 	inst:AddComponent("inspectable") -- 可检查组件
 
@@ -102,9 +99,6 @@ local function fn()
 	inst.components.refinement:SetOnRefine(onrefine)
 
 	MakeHauntableLaunch(inst)
-
-
-
 
 	return inst
 end
