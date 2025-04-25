@@ -1,8 +1,8 @@
+-- replica 仅作为客户端获取数据通道 classified里面提供部分接口封装
 local Elemental_Burst = Class(function(self, inst)
 	self.inst = inst
-	self.level = 1
-
 	if TheWorld.ismastersim then
+		-- 一样的问题，服务端这里keqing_classified是空气,导致没法attach
 		self.classified = inst.keqing_classified
 	elseif self.classified == nil and inst.keqing_classified ~= nil then
 		self:AttachClassified(inst.keqing_classified)
@@ -24,4 +24,15 @@ function Elemental_Burst:DetachClassified()
 	self.classified = nil
 	self.ondetachclassified = nil
 end
+
+function Elemental_Burst:GetValue(name)
+	if self.inst.components.elemental_burst ~= nil then
+		return self.inst.components.elemental_burst[name]
+	end
+	if self.classified ~= nil then
+		return self.classified[name]:value()
+	end
+	return nil
+end
+
 return Elemental_Burst

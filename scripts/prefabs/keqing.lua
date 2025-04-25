@@ -368,16 +368,6 @@ local master_postinit = function(inst)
 
 	-- end
 
-	inst:DoTaskInTime(2, function() -- 拖尾
-		inst.kq_tailing = SpawnPrefab("kq_tailing_fx")
-		if inst.kq_tailing ~= nil then
-			inst.kq_tailing_offset = -105
-			inst.kq_tailing.entity:AddFollower()
-			inst.kq_tailing.entity:SetParent(inst.entity)
-			inst.kq_tailing.Follower:FollowSymbol(inst.GUID, "swap_body", 0, inst.kq_tailing_offset or 0, 0)
-		end
-	end)
-
 	inst:ListenForEvent("itemget", ongetitem)
 
 	inst:DoPeriodicTask(0.1, update)

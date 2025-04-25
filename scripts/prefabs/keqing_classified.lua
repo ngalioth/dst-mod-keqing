@@ -89,8 +89,6 @@ local function OnEntityReplicated(inst)
 	end
 end
 
---------------------------------------------------------------------------
-
 local function RegisterNetListeners(inst)
 	-- inst:ListenForEvent("saydirty", OnSayDirty)
 	-- -- 大概是第一次装备时？
@@ -114,27 +112,25 @@ local function fn()
 	inst:AddTag("CLASSIFIED")
 	-- 是否开启冲刺
 	inst.sprint = net_bool(inst.GUID, "keqing_classified.sprint", "sprint_dirty")
-
+	-- 是否开启语音
+	inst.audio = net_bool(inst.GUID, "keqing_classified.audio", "audio_dirty")
+	-- 暴击爆伤增伤
 	inst.crit = net_float(inst.GUID, "keqing_classified.crit", "crit_dirty")
 	inst.crit_dmg = net_float(inst.GUID, "keqing_classified.crit_dmg", "crit_dmg_dirty")
 	inst.bonus = net_float(inst.GUID, "keqing_classified.bonus", "bonus_dirty")
 
-	-- 元素爆发变量 最大能量 当前能量 最大cd 当前cd
+	-- 元素爆发 等级 cd 当前cd 最大能量 当前能量
+	inst.burst_level = net_ushortint(inst.GUID, "keqing_classified.burst_level", "burst_level_dirty")
 	inst.burst_cd = net_float(inst.GUID, "keqing_classified.burst_cd", "burst_cd_dirty")
 	inst.burst_current_cd = net_float(inst.GUID, "keqing_classified.burst_current_cd", "burst_current_cd_dirty")
 	inst.burst_energy = net_float(inst.GUID, "keqing_classified.burst_energy", "burst_energy_dirty")
 	inst.burst_current_energy =
 		net_float(inst.GUID, "keqing_classified.burst_current_energy", "burst_current_energy_dirty")
 
-	-- 元素战技 战技的cd和当前cd以及是否为二段
+	-- 元素战技 cd 当前cd 是否为二段
 	inst.skill_cd = net_float(inst.GUID, "keqing_classified.skill_cd", "skill_cd_dirty")
 	inst.skill_current_cd = net_float(inst.GUID, "keqing_classified.skill_current_cd", "skill_current_cd_dirty")
 	inst.skill_state = net_bool(inst.GUID, "keqing_classified.skill_state", "skill_state_dirty")
-
-	-- inst.string_list = net_smallbyte(inst.GUID, "keqing_classified.string_list")
-	-- inst.string_id = net_smallbyte(inst.GUID, "keqing_classified.string_id")
-	-- inst.sound_override = net_tinybyte(inst.GUID, "keqing_classified.sound_override", "saydirty")
-	-- inst.enabled = false
 
 	inst.entity:SetPristine()
 

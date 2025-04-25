@@ -1,53 +1,76 @@
--- 示例访问数据
--- print("LV1 技能伤害: " .. skillData[1].skill_damage) -- 输出: 88.0
--- print("LV10 最后一击伤害: " .. skillData[10].final_hit_damage) -- 输出: 340
-
--- local DoSkillAreaDmg = require("lib/utils").DoSkillAreaDmg
--- 该组件处理cd、能量、冷却时间、技能等级，实际造成伤害在sg
 -- 下线其实保存能量和技能等级就可以了，cd都太短了，没啥意义
+--- 数据存储在主要组件完成，改动时通知classified
+local function SetValue(self, name, value)
+	if self.inst.keqing_classified ~= nil then
+		self.inst.keqing_classified[name]:set(value)
+	end
+end
 
--- 这里的数据load要比正常的classified迟一点，否则可能读空气
---- 或者就换一种方式，数据在这里存储，而不是在classified里面存储，那个只用来同步
-local Elemental_Burst = Class(function(self, inst)
-	self.inst = inst
-	self.level = 1 -- 默认等级
-	self.skill_cd = 12.0 -- 默认冷却时间
-	self.max_energy = 40.0 -- 默认最大能量
-	self.energy_cost = 40.0 -- 默认能量消耗
-	self.current_cd = 0.0 -- 当前冷却时间
-	self.current_energy = 0.0 -- 当前能量
-end)
+local function on_burst_level_dirty(self, value)
+	SetValue(self, "burst_level", value)
+end
+local function on_burst_cd_dirty(self, value)
+	SetValue(self, "burst_cd", value)
+end
+local function on_burst_current_cd_dirty(self, value)
+	SetValue(self, "burst_current_cd", value)
+end
+local function on_burst_energy_dirty(self, value)
+	SetValue(self, "burst_energy", value)
+end
+local function on_burst_current_energy_dirty(self, value)
+	SetValue(self, "burst_current_energy", value)
+end
+
+local Elemental_Burst = Class(
+	function(self, inst)
+		self.inst = inst
+		-- 字段和网络变量名保持同步
+		self.burst_level = 1 -- 默认等级
+		self.burst_cd = 12.0 -- 默认冷却时间
+		self.burst_energy = 40.0 -- 默认最大能量
+		self.burst_current_cd = 0.0 -- 当前冷却时间
+		self.burst_current_energy = 0.0 -- 当前能量
+	end,
+	nil,
+	{
+		burst_level = on_burst_level_dirty,
+		burst_cd = on_burst_cd_dirty,
+		burst_current_cd = on_burst_current_cd_dirty,
+		burst_energy = on_burst_energy_dirty,
+		burst_current_energy = on_burst_current_energy_dirty,
+	}
+)
+
 function Elemental_Burst:OnSave()
 	return {
-		current_cd = self.current_cd,
-		current_energy = self.current_energy,
-		level = self.level,
+		current_cd = self.burst_current_cd,
+		current_energy = self.burst_current_energy,
+		level = self.burst_level,
 	}
 end
 function Elemental_Burst:OnLoad(data)
 	if data ~= nil then
-		self.current_cd = data.current_cd or self.skill_cd
-		self.current_energy = data.current_energy or self.current_energy
-		self.level = data.level or self.level
-		if self.current_cd > 0 then
+		self.burst_cd = data.cd or 12
+		self.burst_energy = data.energy or 40
+
+		self.burst_current_cd = data.current_cd or 0
+		self.burst_current_energy = data.current_energy or 12
+		self.burst_level = data.level or 1
+		if self.burst_current_cd > 0 then
 			self.inst:StartUpdatingComponent(self)
 		end
 	end
 end
 function Elemental_Burst:OnUpdate(dt)
-	self.current_cd = self.current_cd - dt
-	if self.current_cd <= 0 then
-		self.current_cd = 0
+	self.burst_current_cd = math.max(0, self.burst_current_cd - dt)
+	if self.burst_current_cd == 0 then
 		self.inst:StopUpdatingComponent(self)
 	end
 end
 
 function Elemental_Burst:SetSkillCd(cd)
-	if cd == nil then
-		self.current_cd = self.skill_cd
-	else
-		self.current_cd = cd
-	end
+	self.burst_current_cd = cd or self.burst_cd
 	self.inst:StartUpdatingComponent(self)
 end
 

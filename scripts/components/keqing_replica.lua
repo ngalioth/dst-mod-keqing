@@ -8,13 +8,12 @@
 -- 所以加载必须在该组件之后
 local Keqing = Class(function(self, inst)
 	self.inst = inst
-	-- 该replica同时负责classified的创建，主机上可以通过ins.keqing_classified访问,客机只能访问
+	-- 该replica同时负责classified的创建，主机和客机都可以通过ins.keqing_classified访问
 	if TheWorld.ismastersim then
 		if inst:HasTag("player") then
 			inst.keqing_classified = SpawnPrefab("keqing_classified")
 			inst.keqing_classified.delayclientdespawn = true
 			self.classified = inst.keqing_classified
-			-- 因为这个classified是必然链接的，所以也不用考虑太多。或许ghost状态要考虑一下？但也可以其他方式禁用
 			self.classified.entity:SetParent(inst.entity)
 			self.classified._parent = inst
 			-- 该实体只需要和当前player交互
@@ -33,16 +32,11 @@ end)
 -- 客户端链接classified
 function Keqing:AttachClassified(classified)
 	self.classified = classified
-
 	self.ondetachclassified = function()
 		self:DetachClassified()
 	end
 	self.inst:ListenForEvent("onremove", self.ondetachclassified, self.classified)
 	-- 实体监听classified，在classified移除之前要先detach
-
-	-- self.inst:ListenForEvent("visibledirty", OnVisibleDirty, classified)
-	-- self.inst:ListenForEvent("heavyliftingdirty", OnHeavyLiftingDirty, classified)
-	-- classified:DoStaticTaskInTime(0, OnVisibleDirty)
 end
 function Keqing:DetachClassified()
 	self.classified = nil
@@ -61,12 +55,6 @@ function Keqing:OnRemoveEntity()
 			self.inst:RemoveEventCallback("onremove", self.ondetachclassified, self.classified)
 			self:DetachClassified()
 		end
-	end
-end
-
-function Keqing:EnableSprint(enabled)
-	if self.classified ~= nil then
-		self.classified.sprint:set(enabled)
 	end
 end
 return Keqing
