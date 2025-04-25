@@ -264,7 +264,7 @@ AddModRPCHandler("keqing", "command", function(player, cmd)
 	if player.keqing_classified then
 		player.keqing_classified:ExecuteCommand(cmd)
 	else
-		print("Player cannot use Keqing commands")
+		moderror("Player cannot use Keqing commands")
 	end
 end)
 -- 添加RPC组件
@@ -329,11 +329,13 @@ local master_postinit = function(inst)
 	inst.components.health:SetMaxHealth(TUNING_KEQING.HEALTH)
 	inst.components.hunger:SetMax(TUNING_KEQING.HUNGER)
 	inst.components.sanity:SetMax(TUNING_KEQING.SANITY)
+	-- 负责初始化classified，所以要早一点
+	inst:AddComponent("keqing")
 	-- 伤害系数
 	inst.components.combat.damagemultiplier = 1
 	--- 技能组件
 	inst:AddComponent("keqing_aoe_dmg")
-	inst:AddComponent("elemental_burst")
+	inst:AddComponent("burst")
 	--- 管理角色暴击和增伤
 	inst:AddComponent("stats_manager")
 	-- 自定义加成，算暴击和增伤
@@ -352,8 +354,6 @@ local master_postinit = function(inst)
 	inst.lx = nil
 
 	inst:AddComponent("reader")
-
-	inst:AddComponent("keqing")
 
 	if inst.components.workmultiplier == nil then
 		inst:AddComponent("workmultiplier") -- 增加工作效率

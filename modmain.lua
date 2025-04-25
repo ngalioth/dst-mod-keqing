@@ -251,7 +251,6 @@ AddClassPostConstruct("widgets/controls", function(self)
 end)
 
 modimport("main/recipes.lua")
--- modimport('main/uidrag.lua')
 modimport("main/stategraphs.lua")
 modimport("main/postinits.lua")
 

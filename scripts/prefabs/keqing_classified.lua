@@ -12,13 +12,13 @@ local COMMANDS = table.invert(COMMAND_NAMES)
 --------------------------------------------------------------------------
 local CmdFns_Server = {
 	[COMMANDS.ENABLESPRINT] = function(inst)
-		print("enable sprint succeed")
+		modprint("enable sprint succeed")
 		if inst._parent then
 			inst._parent.components.keqing:EnableSprint(true)
 		end
 	end,
 	[COMMANDS.DISABLESPRINT] = function(inst)
-		print("disable succeed")
+		modprint("disable succeed")
 		if inst._parent then
 			inst._parent.components.keqing:EnableSprint(false)
 		end
@@ -30,7 +30,7 @@ local function ExecuteCommand_Server(inst, cmd)
 	if fn then
 		return fn(inst)
 	end
-	print("Unsupported Keqing command:", cmd)
+	modprint("Unsupported Keqing command:", cmd)
 	return false
 end
 
@@ -58,7 +58,7 @@ local function ExecuteCommand_Client(inst, cmd)
 	if fn then
 		return fn(inst, cmd)
 	end
-	print("Unsupported Keqing command:", cmd)
+	modprint("Unsupported Keqing command:", cmd)
 	return false
 end
 
@@ -72,14 +72,13 @@ local function OnEntityReplicated(inst)
 	inst._parent = inst.entity:GetParent()
 	if inst._parent == nil then
 		-- moderror("Unable to initialize classified data for keqing", level)
-
 		--- 实际上客户端由于classifedTarget的设置，只能由classified主动调用parent的attach
 	else
 		--- 由于需要绑定过多组件，延迟0s保证生效
 		inst:DoStaticTaskInTime(0, function(inst)
 			-- 这里分别调用对应组件的AttachClassified
-			for i, v in ipairs({ "keqing", "elemental_burst" }) do
-				print("Try to attach classified to parent component: " .. v)
+			for i, v in ipairs({ "keqing", "burst" }) do
+				modprint("Try to attach classified to parent component: " .. v)
 				inst._parent:TryAttachClassifiedToReplicaComponent(inst, v)
 			end
 			inst._parent.keqing_classified = inst
@@ -88,17 +87,66 @@ local function OnEntityReplicated(inst)
 		inst.OnRemoveEntity = OnRemoveEntity
 	end
 end
+--------------------------------------------------------------------------
+local function on_burst_dirty(inst)
+	if inst._parent ~= nil then
+		local data = {
+			level = inst.burst_level:value(),
+			cd = inst.burst_cd:value(),
+			maxcd = inst.burst_maxcd:value(),
+			energy = inst.burst_energy:value(),
+			maxenergy = inst.burst_maxenergy:value(),
+		}
+		inst._parent:PushEvent("burst_d", data)
+	end
+end
+
+--------------------------------------------------------------------------
+local function OnInitialDirtyStates(inst) end
+
+local function RegisterNetListeners_mastersim(inst) end
+
+local function RegisterNetListeners_local(inst)
+	inst:ListenForEvent("burst_level_dirty", on_burst_dirty)
+	inst:ListenForEvent("burst_cd_dirty", on_burst_dirty)
+	inst:ListenForEvent("burst_maxcd_dirty", on_burst_dirty)
+	inst:ListenForEvent("burst_energy_dirty", on_burst_dirty)
+	inst:ListenForEvent("burst_maxenergy_dirty", on_burst_dirty)
+end
+
+local function RegisterNetListeners_common(inst) end
 
 local function RegisterNetListeners(inst)
-	-- inst:ListenForEvent("saydirty", OnSayDirty)
-	-- -- 大概是第一次装备时？
+	if TheWorld.ismastersim then
+		inst._parent = inst.entity:GetParent()
+		RegisterNetListeners_mastersim(inst)
+	else
+		RegisterNetListeners_local(inst)
+	end
+
+	RegisterNetListeners_common(inst)
+
+	OnInitialDirtyStates(inst)
+
+	if inst._parent.isseamlessswaptarget then
+		--finishseamlessplayerswap will be able to retrigger all the instant events if the initialization happened in the "wrong"" order.
+		inst:ListenForEvent("finishseamlessplayerswap", fns.FinishSeamlessPlayerSwap, inst._parent)
+		--Fade is initialized by OnPlayerActivated in gamelogic.lua
+	end
 	-- OnSayDirty(inst)
 	inst:ListenForEvent("sprint_dirty", function(inst)
-		print("sprint dirty value is " .. tostring(inst.sprint:value()))
+		modprint("sprint dirty value is " .. tostring(inst.sprint:value()))
 	end)
 end
 
 --------------------------------------------------------------------------
+
+local burstVar = {
+	"cd",
+	"maxcd",
+	"energy",
+	"maxenergy",
+}
 
 local function fn()
 	local inst = CreateEntity()
@@ -114,18 +162,12 @@ local function fn()
 	inst.sprint = net_bool(inst.GUID, "keqing_classified.sprint", "sprint_dirty")
 	-- 是否开启语音
 	inst.audio = net_bool(inst.GUID, "keqing_classified.audio", "audio_dirty")
-	-- 暴击爆伤增伤
-	inst.crit = net_float(inst.GUID, "keqing_classified.crit", "crit_dirty")
-	inst.crit_dmg = net_float(inst.GUID, "keqing_classified.crit_dmg", "crit_dmg_dirty")
-	inst.bonus = net_float(inst.GUID, "keqing_classified.bonus", "bonus_dirty")
 
 	-- 元素爆发 等级 cd 当前cd 最大能量 当前能量
-	inst.burst_level = net_ushortint(inst.GUID, "keqing_classified.burst_level", "burst_level_dirty")
-	inst.burst_cd = net_float(inst.GUID, "keqing_classified.burst_cd", "burst_cd_dirty")
-	inst.burst_current_cd = net_float(inst.GUID, "keqing_classified.burst_current_cd", "burst_current_cd_dirty")
-	inst.burst_energy = net_float(inst.GUID, "keqing_classified.burst_energy", "burst_energy_dirty")
-	inst.burst_current_energy =
-		net_float(inst.GUID, "keqing_classified.burst_current_energy", "burst_current_energy_dirty")
+	for _, v in ipairs(burstVar) do
+		inst["burst_" .. v] = net_float(inst.GUID, "burst." .. v, "burst_" .. v .. "_dirty")
+	end
+	inst.burst_level = net_ushortint(inst.GUID, "burst.level", "burst_level_dirty")
 
 	-- 元素战技 cd 当前cd 是否为二段
 	inst.skill_cd = net_float(inst.GUID, "keqing_classified.skill_cd", "skill_cd_dirty")

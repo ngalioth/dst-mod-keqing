@@ -1,18 +1,18 @@
 AddStategraphState(
 	"wilson",
 	State({
-		name = "keqing_elemental_burst",
+		name = "keqing_burst",
 		tags = { "busy", "pausepredict", "nomorph", "nodangle" },
 		onenter = function(inst)
 			-- 进入无敌状态
 			inst:AddTag("noattack")
 			inst.components.health:SetInvincible(true)
 			-- 技能进入cd
-			-- inst.components.elemental_burst:SetSkillCd()
+			-- inst.components.burst:SetSkillCd()
 			-- 全屏的滤镜或者是气场特效tbd
-			inst.components.elemental_burst:SetSkillCd()
+			inst.components.burst:SetSkillCd()
 			local x, y, z = inst.Transform:GetWorldPosition()
-			inst.components.elemental_burst:DoSkill("skill")
+			inst.components.burst:DoSkill("skill")
 			inst._burst_task = inst:DoPeriodicTask(0.2, function()
 				-- 8次斩击
 				inst._burst_slash_count = (inst._burst_slash_count or 0) + 1
@@ -24,7 +24,7 @@ AddStategraphState(
 					end
 					return
 				end
-				inst.components.elemental_burst:DoSkill("slash")
+				inst.components.burst:DoSkill("slash")
 			end)
 		end,
 		-- 按照帧次数生成影子 按照出现顺序依次消失 最后一段影子消失时出现最后的斩击 影子不直接造成伤害，伤害就单独数帧造成吧
@@ -59,7 +59,7 @@ AddStategraphState(
 				SpawnPrefab("keqing_burst_3_fx").Transform:SetPosition(x, y, z)
 			end), -- 第75帧 在连斩特效3结束前进入下一个sg，可打断的无敌状态，角色模型出现
 			TimeEvent(75 * FRAMES, function(inst)
-				inst.sg:GoToState("keqing_elemental_burst_pst")
+				inst.sg:GoToState("keqing_burst_pst")
 			end),
 		},
 	})
@@ -69,7 +69,7 @@ AddStategraphState(
 AddStategraphState(
 	"wilson",
 	State({
-		name = "keqing_elemental_burst_pst",
+		name = "keqing_burst_pst",
 		tags = { "pausepredict", "nomorph", "nodangle" },
 		onenter = function(inst)
 			-- 角色模型出现
@@ -82,7 +82,7 @@ AddStategraphState(
 				-- 延迟生成最后一次斩击和伤害
 				local x, y, z = inst.Transform:GetWorldPosition()
 				SpawnPrefab("keqing_burst_end_fx").Transform:SetPosition(x, y, z)
-				inst.components.elemental_burst:DoSkill("last")
+				inst.components.burst:DoSkill("last")
 
 				-- 取消滤镜
 			end),
@@ -101,19 +101,17 @@ AddStategraphState(
 	})
 )
 
--- GoToState("keqing_elemental_burst")
--- for client
 AddStategraphState(
 	"wilson_client",
 	State({
-		name = "keqing_elemental_burst",
+		name = "keqing_burst",
 		tags = { "busy", "pausepredict", "nomorph", "nodangle" },
 		onenter = function(inst)
 			-- 进入无敌状态
 			-- inst:AddTag("noattack")
 			-- inst.components.health:SetInvincible(true)
 			-- -- 技能进入cd
-			-- inst.components.elemental_burst:SetSkillCd()
+			-- inst.components.burst:SetSkillCd()
 			-- 全屏的滤镜或者是气场特效tbd
 		end,
 		-- 按照帧次数生成影子 按照出现顺序依次消失 最后一段影子消失时出现最后的斩击 影子不直接造成伤害，伤害就单独数帧造成吧
@@ -145,7 +143,7 @@ AddStategraphState(
 				SpawnPrefab("keqing_burst_3_fx").Transform:SetPosition(x, y, z)
 			end), -- 第75帧 在连斩特效3结束前进入下一个sg，可打断的无敌状态，角色模型出现
 			TimeEvent(75 * FRAMES, function(inst)
-				inst.sg:GoToState("keqing_elemental_burst_pst")
+				inst.sg:GoToState("keqing_burst_pst")
 			end),
 		},
 	})
@@ -155,7 +153,7 @@ AddStategraphState(
 AddStategraphState(
 	"wilson_client",
 	State({
-		name = "keqing_elemental_burst_pst",
+		name = "keqing_burst_pst",
 		tags = { "pausepredict", "nomorph", "nodangle" },
 		onenter = function(inst)
 			-- inst:Show()

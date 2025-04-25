@@ -1,3 +1,3 @@
 AddReplicableComponent("keqing")
-AddReplicableComponent("elemental_burst")
+AddReplicableComponent("burst")
 AddReplicableComponent("refinement")
