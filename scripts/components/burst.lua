@@ -1,6 +1,7 @@
 -- 下线其实保存能量和技能等级就可以了，cd都太短了，没啥意义
 --- 数据存储在主要组件完成，改动时通知classified
 local function SetValue(self, name, value)
+	self.inst:PushEvent("burst_" .. name .. "_delta", value)
 	if self.inst.keqing_classified ~= nil then
 		self.inst.keqing_classified["burst_" .. name]:set(value)
 	end

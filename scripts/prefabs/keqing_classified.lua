@@ -88,30 +88,26 @@ local function OnEntityReplicated(inst)
 	end
 end
 --------------------------------------------------------------------------
-local function on_burst_dirty(inst)
-	if inst._parent ~= nil then
-		local data = {
-			level = inst.burst_level:value(),
-			cd = inst.burst_cd:value(),
-			maxcd = inst.burst_maxcd:value(),
-			energy = inst.burst_energy:value(),
-			maxenergy = inst.burst_maxenergy:value(),
-		}
-		inst._parent:PushEvent("burst_d", data)
+-- burst_cd_dirty就对本地的parent推送 burst_cd_delta事件，主机组件内部一样，完成同步
+local function makeOnDirty(cmp, name)
+	return function(inst)
+		if inst._parent then
+			local parent = inst._parent
+			parent:PushEvent(cmp .. "_" .. name .. "_delta", parent.replica.burst:GetValue(name))
+		end
 	end
 end
-
 --------------------------------------------------------------------------
 local function OnInitialDirtyStates(inst) end
 
 local function RegisterNetListeners_mastersim(inst) end
 
 local function RegisterNetListeners_local(inst)
-	inst:ListenForEvent("burst_level_dirty", on_burst_dirty)
-	inst:ListenForEvent("burst_cd_dirty", on_burst_dirty)
-	inst:ListenForEvent("burst_maxcd_dirty", on_burst_dirty)
-	inst:ListenForEvent("burst_energy_dirty", on_burst_dirty)
-	inst:ListenForEvent("burst_maxenergy_dirty", on_burst_dirty)
+	inst:ListenForEvent("burst_level_dirty", makeOnDirty("burst", "level"))
+	inst:ListenForEvent("burst_cd_dirty", makeOnDirty("burst", "cd"))
+	inst:ListenForEvent("burst_maxcd_dirty", makeOnDirty("burst", "maxcd"))
+	inst:ListenForEvent("burst_energy_dirty", makeOnDirty("burst", "energy"))
+	inst:ListenForEvent("burst_maxenergy_dirty", makeOnDirty("burst", "maxenergy"))
 end
 
 local function RegisterNetListeners_common(inst) end
@@ -147,6 +143,10 @@ local burstVar = {
 	"energy",
 	"maxenergy",
 }
+local skillVar = {
+	"cd",
+	"maxcd",
+}
 
 local function fn()
 	local inst = CreateEntity()
@@ -159,9 +159,9 @@ local function fn()
 	inst.entity:Hide()
 	inst:AddTag("CLASSIFIED")
 	-- 是否开启冲刺
-	inst.sprint = net_bool(inst.GUID, "keqing_classified.sprint", "sprint_dirty")
+	inst.sprint = net_bool(inst.GUID, "keqing.sprint", "sprint_dirty")
 	-- 是否开启语音
-	inst.audio = net_bool(inst.GUID, "keqing_classified.audio", "audio_dirty")
+	inst.audio = net_bool(inst.GUID, "keqing.audio", "audio_dirty")
 
 	-- 元素爆发 等级 cd 当前cd 最大能量 当前能量
 	for _, v in ipairs(burstVar) do
@@ -170,8 +170,9 @@ local function fn()
 	inst.burst_level = net_ushortint(inst.GUID, "burst.level", "burst_level_dirty")
 
 	-- 元素战技 cd 当前cd 是否为二段
-	inst.skill_cd = net_float(inst.GUID, "keqing_classified.skill_cd", "skill_cd_dirty")
-	inst.skill_current_cd = net_float(inst.GUID, "keqing_classified.skill_current_cd", "skill_current_cd_dirty")
+	for _, v in ipairs(skillVar) do
+		inst["keqing_" .. v] = net_float(inst.GUID, "skill." .. v, "skill_" .. v .. "_dirty")
+	end
 	inst.skill_state = net_bool(inst.GUID, "keqing_classified.skill_state", "skill_state_dirty")
 
 	inst.entity:SetPristine()
