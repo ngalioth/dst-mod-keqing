@@ -11,9 +11,14 @@ local burst = Class(Widget, function(self, owner)
 	self:SetPosition(-1450, 150, 0)
 	self:SetScale(1, 1, 1)
 
-	self.currentenergy = owner.currentenergy:value()
-	self.maxenergy = owner.maxenergy:value()
-	self.percent = self.currentenergy / self.maxenergy
+	-- self.currentenergy = owner.currentenergy:value()
+	-- self.maxenergy = owner.maxenergy:value()
+	-- self.percent = self.currentenergy / self.maxenergy
+
+	self.currentenergy = 1
+	self.maxenergy = 1
+	self.percent = 1
+	self.time = 0
 
 	self.anim = self:AddChild(UIAnim())
 	self.anim:GetAnimState():SetBank("energy")
@@ -36,22 +41,26 @@ local burst = Class(Widget, function(self, owner)
 
 	self:StartUpdating()
 
-	owner:ListenForEvent("currentenergy_dirty", function()
-		self.currentenergy = owner.currentenergy:value()
+	owner:ListenForEvent("burst_energy_delta", function()
+		-- self.currentenergy = owner.currentenergy:value()
+		self.currentenergy = owner.replica.burst:GetValue("energy")
 		self.percent = self.currentenergy / self.maxenergy
 	end)
 
-	owner:ListenForEvent("maxenergy_dirty", function()
-		self.maxenergy = owner.maxenergy:value()
+	owner:ListenForEvent("burst_maxenergy_delta", function()
+		-- self.maxenergy = owner.maxenergy:value()
+		self.maxenergy = owner.replica.burst:GetValue("maxenergy")
 		self.percent = self.currentenergy / self.maxenergy
+	end)
+	owner:ListenForEvent("burst_cd_delta", function()
+		self.time = owner.replica.burst:GetValue("cd")
 	end)
 
 	self.click = false
 end)
 
 function burst:OnUpdate(dt)
-	local time = self.owner.burstcdleft:value() or 0
-	self.cd:SetString(string.format("%.1f", time))
+	self.cd:SetString(string.format("%.1f", self.time))
 	if self.percent < 0.25 and self.percent >= 0 then
 		self.anim:GetAnimState():PlayAnimation("idle")
 	elseif self.percent < 0.5 and self.percent >= 0.25 then
@@ -68,7 +77,7 @@ function burst:OnUpdate(dt)
 		self.anim:Hide()
 	else
 		self.anim:Show()
-		if time > 0 then
+		if self.time > 0 then
 			self.cd:Show()
 		else
 			self.cd:Hide()
