@@ -88,16 +88,16 @@ function Burst:DoSkill(stage)
 end
 function Burst:TryDoSkill()
 	local doer = self.inst
-	if
-		doer
+	local canDo = doer
 		and doer:IsValid()
 		and doer.components.health
 		and not doer.components.health:IsDead()
 		and not doer.sg:HasStateTag("busy")
 		and not (doer.components.rider and doer.components.rider:IsRiding())
-		and self.energy >= self.maxenergy
-		and self.cd <= 0
-	then
+	if not TUNING_KEQING.DEBUG then
+		canDo = canDo and self.energy >= self.maxenergy and self.cd <= 0
+	end
+	if canDo then
 		modprint("ready to do burst")
 		doer:PushEvent("do_burst")
 		if not TUNING_KEQING.DEBUG then

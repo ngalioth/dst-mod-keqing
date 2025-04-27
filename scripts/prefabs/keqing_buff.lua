@@ -3,20 +3,20 @@
 -------------------------------------------------------------------------
 -- 这里留着做玉衡之贵的buff
 local function aristocratic_dignity_attach(inst, target)
-	if target.components.combat ~= nil then
-		target.components.combat.externaldamagemultipliers:SetModifier(inst, 0.15)
-	end
-	-- if target.components.dmg_bonus_manager ~= nil then
-	--     target.components.dmg_bonus_manager.bonus:SetModifier(inst, TUNING.BUFF_ATTACK_bonus)
+	-- if target.components.combat ~= nil then
+	-- 	target.components.combat.externaldamagemultipliers:SetModifier(inst, 0.15)
 	-- end
+	if target.components.stats_manager ~= nil then
+		target.components.stats_manager.bonus:SetModifier(inst, TUNING.BUFF_ATTACK_bonus)
+	end
 end
 
 local function aristocratic_dignity_detach(inst, target)
 	-- if target.components.combat ~= nil then
 	--     target.components.combat.externaldamagemultipliers:RemoveModifier(inst)
 	-- end
-	if target.components.dmg_bonus_manager ~= nil then
-		target.components.dmg_bonus_manager.bonus:RemoveModifier(inst)
+	if target.components.stats_manager ~= nil then
+		target.components.stats_manager.bonus:RemoveModifier(inst)
 	end
 end
 

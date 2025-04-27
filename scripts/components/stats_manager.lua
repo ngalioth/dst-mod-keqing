@@ -13,7 +13,7 @@ local Stats_Manager = Class(function(self, inst)
 	self.energy_recharge = SourceModifierList(self.inst, ENERGY_RECHARGE_BASE, SourceModifierList.additive)
 end)
 function Stats_Manager:GetDamageBonus()
-	if math.random() <= self.crit:Get() then
+	if math.random() <= self.crit:Get() and TUNING_KEQING.CRIT then
 		self.hascrit = true
 		return self.bonus:Get() * self.critdmg:Get()
 	end

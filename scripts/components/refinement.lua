@@ -10,7 +10,7 @@ function Refinement:OnRecordDirty()
 end
 function Refinement:OnSave()
 	local rec = json.encode(self.record)
-	dumptable(rec)
+	-- dumptable(rec)
 	return {
 		record = rec,
 	}

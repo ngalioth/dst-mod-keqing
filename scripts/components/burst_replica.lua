@@ -30,7 +30,7 @@ function Burst:GetValue(name)
 	if self.classified ~= nil then
 		return self.classified["burst_" .. name]:value()
 	end
-	return nil
+	return 1
 end
 
 return Burst

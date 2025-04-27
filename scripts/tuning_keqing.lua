@@ -222,5 +222,6 @@ TUNING_KEQING = {
 	HUNGER = 175,
 	SANITY = 200,
 	DEBUG = false,
+	CRIT = true,
 }
 -- TUNING_KEQING.DEBUGMOD.ENABLE = false
