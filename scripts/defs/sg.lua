@@ -7,10 +7,8 @@ AddStategraphState(
 			-- 进入无敌状态
 			inst:AddTag("noattack")
 			inst.components.health:SetInvincible(true)
-			-- 技能进入cd
 			-- inst.components.burst:SetSkillCd()
 			-- 全屏的滤镜或者是气场特效tbd
-			inst.components.burst:SetSkillCd()
 			local x, y, z = inst.Transform:GetWorldPosition()
 			inst.components.burst:DoSkill("skill")
 			inst._burst_task = inst:DoPeriodicTask(0.2, function()
@@ -179,4 +177,17 @@ AddStategraphState(
 			-- inst.components.health:SetInvincible(false)
 		end,
 	})
+)
+
+AddStategraphEvent(
+	"wilson_client",
+	EventHandler("do_burst", function(inst)
+		inst.sg:GoToState("keqing_burst")
+	end)
+)
+AddStategraphEvent(
+	"wilson",
+	EventHandler("do_burst", function(inst)
+		inst.sg:GoToState("keqing_burst")
+	end)
 )

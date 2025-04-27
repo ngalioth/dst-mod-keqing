@@ -41,26 +41,34 @@ local burst = Class(Widget, function(self, owner)
 
 	self:StartUpdating()
 
-	owner:ListenForEvent("burst_energy_delta", function()
-		-- self.currentenergy = owner.currentenergy:value()
-		self.currentenergy = owner.replica.burst:GetValue("energy")
-		self.percent = self.currentenergy / self.maxenergy
-	end)
+	-- owner:ListenForEvent("burst_energy_delta", function()
+	-- 	-- self.currentenergy = owner.currentenergy:value()
+	-- 	self.currentenergy = owner.replica.burst:GetValue("energy")
+	-- 	self.percent = self.currentenergy / self.maxenergy
+	-- end)
 
-	owner:ListenForEvent("burst_maxenergy_delta", function()
-		-- self.maxenergy = owner.maxenergy:value()
-		self.maxenergy = owner.replica.burst:GetValue("maxenergy")
-		self.percent = self.currentenergy / self.maxenergy
-	end)
-	owner:ListenForEvent("burst_cd_delta", function()
-		self.time = owner.replica.burst:GetValue("cd")
-	end)
+	-- owner:ListenForEvent("burst_maxenergy_delta", function()
+	-- 	-- self.maxenergy = owner.maxenergy:value()
+	-- 	self.maxenergy = owner.replica.burst:GetValue("maxenergy")
+	-- 	self.percent = self.currentenergy / self.maxenergy
+	-- end)
+	-- owner:ListenForEvent("burst_cd_delta", function()
+	-- 	self.time = owner.replica.burst:GetValue("cd")
+	-- end)
 
 	self.click = false
 end)
 
 function burst:OnUpdate(dt)
+	--- 事件推送有延迟，太高频率的不能依赖事件推送，需要自己主动去获取
+	self.maxenergy = self.owner.replica.burst:GetValue("maxenergy")
+	self.currentenergy = self.owner.replica.burst:GetValue("energy")
+	self.percent = self.currentenergy / self.maxenergy
+
+	self.time = self.owner.replica.burst:GetValue("cd")
+
 	self.cd:SetString(string.format("%.1f", self.time))
+
 	if self.percent < 0.25 and self.percent >= 0 then
 		self.anim:GetAnimState():PlayAnimation("idle")
 	elseif self.percent < 0.5 and self.percent >= 0.25 then

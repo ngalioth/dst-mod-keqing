@@ -49,7 +49,7 @@ local function MakeFx(name, bank, build, anim, assets)
 		inst.entity:AddFollower()
 
 		inst.Transform:SetNoFaced() -- 只有一个面
-		inst.Transform:SetScale(2, 2, 2) -- 设置大小
+		inst.Transform:SetScale(1.5, 1.5, 1.5) -- 设置大小
 		inst.AnimState:SetBank(bank) -- 动画集合
 		inst.AnimState:SetBuild(build) -- Prefab的材质
 		inst.AnimState:PlayAnimation(anim) -- 动画播放

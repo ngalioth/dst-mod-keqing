@@ -86,5 +86,25 @@ function Burst:DoSkill(stage)
 		self.inst.components.keqing_aoe_dmg:DoAoeAttack(last_dmg_mult, range, x, y, z)
 	end
 end
+function Burst:TryDoSkill()
+	local doer = self.inst
+	if
+		doer
+		and doer:IsValid()
+		and doer.components.health
+		and not doer.components.health:IsDead()
+		and not doer.sg:HasStateTag("busy")
+		and not (doer.components.rider and doer.components.rider:IsRiding())
+		and self.energy >= self.maxenergy
+		and self.cd <= 0
+	then
+		modprint("ready to do burst")
+		doer:PushEvent("do_burst")
+		if not TUNING_KEQING.DEBUG then
+			self:SetCd()
+			self.energy = self.energy - 40
+		end
+	end
+end
 
 return Burst
