@@ -2,6 +2,7 @@ local assets = {
 	Asset("ANIM", "anim/leixie.zip"),
 }
 
+-- 雷楔怎么着也应该是个特效，不是实体，不跟随主体的特效
 local function create()
 	local assetname = "leixie"
 
@@ -25,6 +26,8 @@ local function create()
 
 	inst.entity:AddNetwork() --添加网络属性
 
+	inst:AddTag("FX")
+	inst.entity:SetPristine()
 	inst.persists = false
 
 	if not TheWorld.ismastersim then
@@ -37,10 +40,7 @@ local function create()
 	--inst.SoundEmitter:KillSound("name")
 	--inst.entity:AddDynamicShadow()
 
-	--添加监听器清除实体
-	-- inst:ListenForEvent("timeover", inst.Remove)
-
 	return inst
 end
 
-return Prefab("leixie", create, assets)
+return Prefab("keqing_stiletto", create, assets)

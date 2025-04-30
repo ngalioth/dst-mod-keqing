@@ -9,8 +9,6 @@ local prefabs = {
 -- 初始物品
 local start_inv = TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.KEQING
 
-local exclude_tags = { "INLIMBO", "companion", "wall", "abigail", "player", "chester" }
-
 local EMPTY_TABLE = {}
 -- 当人物复活的时候
 local function onbecamehuman(inst)
@@ -43,22 +41,7 @@ local function ongetitem(inst, data)
 		inst.components.cursable:RemoveCurse("MONKEY", 20)
 	end
 end
-
-local function fryfish(inst, radius)
-	local x, y, z = inst.Transform:GetWorldPosition()
-	local ent0 = TheSim:FindEntities(x, y, z, radius)
-	for i, ent in ipairs(ent0) do
-		if ent:HasTag("fish") or ent:HasTag("fishmeat") or ent.prefab == "fish_cooked" then
-			if not ent:HasTag("INLIMBO") then
-				local fishpos = ent:GetPosition()
-				SpawnPrefab("kq_specialfish").Transform:SetPosition(fishpos:Get())
-				ent:Remove()
-			end
-		end
-	end
-end
 --------------------------------------------------------------------------
-
 --pos: double click coords; nil when double tapping direction instead of mouse
 --dir: WASD/analog dir; nil if neutral (NOTE: this may be in a different direction than pos!)
 --target: double click mouseover target; nil when tapping direction instead of mouse
@@ -93,183 +76,6 @@ local function OnSetOwner(inst)
 	end
 end
 
--- 释放元素战技
-local function ElementalSkill(inst, x, y, z)
-	if inst.components.timer:TimerExists("SKILL") and inst.skillcnt == 0 then
-		return
-	end
-	if inst.components.rider and inst.components.rider:IsRiding() then
-		return
-	end -- 不在骑行状态
-	if not inst:HasTag("playerghost") and inst:HasTag("keqing") then -- 人物还在，且为keqing
-		local item = inst.components.inventory.equipslots[EQUIPSLOTS.HANDS]
-		if item and item.components.weapon == nil then
-			item = nil
-		end
-		inst.skillcnt = inst.skillcnt + 1 -- 计数，判断第几次使用该技能
-		if inst.skillcnt == 1 then
-			if inst.components.talker then
-				if math.random() <= 0.5 then
-					inst.components.talker:Say("可别眨眼！")
-				else
-					inst.components.talker:Say("迅影如剑！")
-				end
-			end
-			inst.pos = inst:GetPosition() -- 第一次使用，记录鼠标位置
-			inst.pos.x, inst.pos.y, inst.pos.z = x, y, z
-			inst.components.timer:StartTimer("SKILL", inst.skillcd)
-			inst.lx = SpawnPrefab("leixie")
-			inst.lx.Transform:SetPosition(x, y, z)
-			inst.components.timer:StartTimer("LX", 5)
-			fryfish(inst.lx, 2)
-			local ents = TheSim:FindEntities(x, y, z, 2, { "_combat" }, exclude_tags)
-			for i, ent in ipairs(ents) do
-				if ent.components.combat then
-					inst:PushEvent("onareaattackother", {
-						target = ent,
-						weapon = item,
-						stimuli = "electro",
-					})
-					inst.components.combat:DoAttack(ent, item, nil, "electro", 1.07)
-				end
-			end
-		elseif inst.skillcnt == 2 then
-			inst.skillcnt = 0
-			-- 第二次使用，传送至目标位置
-			if inst.Physics then
-				inst.Physics:Teleport(inst.pos.x, inst.pos.y, inst.pos.z)
-			else
-				inst.components.SetPosition(inst.pos.x, inst.pos.y, inst.pos.z)
-			end
-			inst.components.timer:StopTimer("LX")
-			inst.lx:Remove()
-			local fx = SpawnPrefab("kq_skill_fx")
-			fx.Transform:SetPosition(inst.pos.x, inst.pos.y, inst.pos.z)
-			fryfish(inst, 4)
-			local x0, y0, z0 = inst.Transform:GetWorldPosition()
-			-- 通过 TheSim:FindEntities() 函数查找周围的实体
-			local ents = TheSim:FindEntities(x0, y0, z0, 4, { "_combat" }, exclude_tags)
-			for i, ent in ipairs(ents) do
-				if ent.components.combat then
-					inst:PushEvent("onareaattackother", {
-						target = ent,
-						weapon = item,
-						stimuli = "electro",
-					})
-					inst.components.combat:DoAttack(ent, item, nil, "electro", 3.57)
-				end
-			end
-			inst.components.EleEnergy:DoDelta(9)
-		end
-	end
-end
-
--- 元素爆发
-local function ElementalBurst(inst)
-	if inst.components.timer:TimerExists("BURST") then
-		return
-	end
-	if inst ~= nil and inst:IsValid() and inst.components.health and not inst.components.health:IsDead() then -- 存在，没寄
-		if
-			not inst.sg:HasStateTag("busy") and not (inst.components.rider ~= nil and inst.components.rider:IsRiding())
-		then -- 没其他动作，没骑牛
-			if inst.components.EleEnergy and inst.components.EleEnergy.current >= 40 then
-				if inst.kq_tjxytask == nil then
-					if inst.components.talker then
-						if math.random() <= 0.5 then
-							inst.components.talker:Say("剑光如我，斩尽芜杂！")
-						else
-							inst.components.talker:Say("剑出，影随！")
-						end
-					end
-					-- 开大期间无敌
-					inst:AddTag("noattack")
-					inst.components.health:SetInvincible(true)
-					inst.components.EleEnergy:DoDelta(-40)
-					inst.components.timer:StartTimer("BURST", 12)
-					-- 生成特效
-					local x, y, z = inst.Transform:GetWorldPosition()
-					-- 通过 TheSim:FindEntities() 函数查找周围的实体
-					SpawnPrefab("lightning").Transform:SetPosition(x, y, z)
-					SpawnPrefab("kq_burst_fx").Transform:SetPosition(x, y, z)
-					-- 连续造成十段伤害
-					inst.kq_tjxytask = inst:DoPeriodicTask(0.2, function(inst)
-						print("进来了")
-						-- 记录攻击段数
-						inst.tjxy_count = (inst.tjxy_count or 0) + 1
-						-- 打完10段停下
-						if inst.tjxy_count > 10 then
-							if inst.kq_tjxytask ~= nil then
-								inst.kq_tjxytask:Cancel()
-								inst.kq_tjxytask = nil
-								inst.tjxy_count = 0
-							end
-							inst:RemoveTag("noattack")
-							inst.components.health:SetInvincible(false)
-							-- 保险一下（
-							return
-						end
-						-- 计算倍率
-						local mult = 0.51
-						if inst.tjxy_count == 1 then
-							mult = 1.87
-						elseif inst.tjxy_count == 10 then
-							mult = 4.01
-						else
-							mult = 0.51
-						end
-						-- 搜索目标并给予伤害
-						local radius = 10
-						local weapon = inst.components.inventory.equipslots[EQUIPSLOTS.HANDS]
-						local ents = TheSim:FindEntities(x, y, z, radius, { "_combat" }, exclude_tags)
-						for i, ent in ipairs(ents) do
-							if
-								ent ~= nil
-								and ent:IsValid()
-								and ent.components.health
-								and not ent.components.health:IsDead()
-							then
-								-- print("准备攻击了")
-								inst.components.combat:DoAttack(ent, weapon, nil, "electro", mult)
-								-- print("让我康康！现在是第"..inst.tjxy_count.."段")
-							end
-						end
-						fryfish(inst, 10)
-					end)
-				end
-			end
-		end
-	end
-end
-
-local function update(inst)
-	inst.skillcdleft:set(inst.components.timer ~= nil and inst.components.timer:GetTimeLeft("SKILL") or 0)
-	inst.burstcdleft:set(inst.components.timer ~= nil and inst.components.timer:GetTimeLeft("BURST") or 0)
-	if not inst.components.timer:TimerExists("LX") and inst.lx ~= nil then
-		inst.ChangeSkillIcon1:set(false)
-		inst.lx:Remove()
-		inst.skillcnt = 0
-	end
-	if inst.components.timer:TimerExists("LX") and inst.lx ~= nil then
-		inst.ChangeSkillIcon1:set(true)
-	end
-end
-
-AddModRPCHandler("keqing", "command", function(player, cmd)
-	if not checkuint(cmd) then
-		printinvalid("KeqingCommand", player)
-		return
-	end
-
-	if player.keqing_classified then
-		player.keqing_classified:ExecuteCommand(cmd)
-	else
-		moderror("Player cannot use Keqing commands")
-	end
-end)
--- 添加RPC组件
-AddModRPCHandler("keqing", "skill", ElementalSkill)
-AddModRPCHandler("keqing", "burst", ElementalBurst)
 -- 这俩暴击独立计算了，需要额外处理，神经暴击机制
 local function CustomCombatDamage(inst, target, weapon, multiplier, mount)
 	if inst.components.stats_manager ~= nil then
@@ -304,15 +110,10 @@ local common_postinit = function(inst)
 	inst:ListenForEvent("setowner", OnSetOwner)
 
 	inst.skillcd = 7.5
-	inst.burstcd = 12
+
 	inst.skillcdleft = net_float(inst.GUID, "inst.skillcdleft")
-	inst.burstcdleft = net_float(inst.GUID, "inst.burstcdleft")
-	inst.maxenergy = net_ushortint(inst.GUID, "maxenergy", "maxenergy_dirty")
-	inst.currentenergy = net_ushortint(inst.GUID, "currentenergy", "currentenergy_dirty")
 	inst.ChangeSkillIcon1 = net_bool(inst.GUID, "ChangeSkillIcon1")
-	-- 添加元素能量组件
-	inst:AddComponent("EleEnergy")
-	inst.components.EleEnergy:SetMax(40)
+
 	-- 按键组件
 	inst:AddComponent("key")
 	-- 元素战技组件
@@ -336,6 +137,7 @@ local master_postinit = function(inst)
 	--- 技能组件
 	inst:AddComponent("keqing_aoe_dmg")
 	inst:AddComponent("burst")
+	inst:AddComponent("skill")
 	--- 管理角色暴击和增伤
 	inst:AddComponent("stats_manager")
 	-- 自定义加成，算暴击和增伤
@@ -358,19 +160,12 @@ local master_postinit = function(inst)
 	if inst.components.workmultiplier == nil then
 		inst:AddComponent("workmultiplier") -- 增加工作效率
 	end
-
 	inst.components.workmultiplier:AddMultiplier(ACTIONS.CHOP, 1.5, inst) -- 砍树效率
 	inst.components.workmultiplier:AddMultiplier(ACTIONS.MINE, 1.5, inst) -- 挖矿效率
 	inst.components.workmultiplier:AddMultiplier(ACTIONS.HAMMER, 1.5, inst) -- 锤子效率
 	inst.components.workmultiplier:AddMultiplier(ACTIONS.DIG, 1.5, inst) -- 铲子效率
 
-	-- if TUNING.KEQING_SHOWTAIL == "on" then
-
-	-- end
-
 	inst:ListenForEvent("itemget", ongetitem)
-
-	inst:DoPeriodicTask(0.1, update)
 
 	inst.OnLoad = onload
 	inst.OnNewSpawn = onload

@@ -32,6 +32,7 @@ PrefabFiles = {
 	"keqing_buff",
 	"keqing_pjc",
 	"keqing_classified",
+	"keqing_stiletto",
 }
 
 ---对比老版本 主要是增加了names图片 人物检查图标 还有人物的手臂修复（增加了上臂）
@@ -257,3 +258,4 @@ modimport("main/postinits.lua")
 modimport("scripts/defs/replica.lua")
 modimport("scripts/defs/action.lua")
 modimport("scripts/defs/sg.lua")
+modimport("scripts/defs/rpc.lua")
