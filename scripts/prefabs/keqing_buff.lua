@@ -6,8 +6,8 @@ local function aristocratic_dignity_attach(inst, target)
 	-- if target.components.combat ~= nil then
 	-- 	target.components.combat.externaldamagemultipliers:SetModifier(inst, 0.15)
 	-- end
-	if target.components.stats_manager ~= nil then
-		target.components.stats_manager.bonus:SetModifier(inst, TUNING.BUFF_ATTACK_bonus)
+	if target.components.keqing_stats ~= nil then
+		target.components.keqing_stats.bonus:SetModifier(inst, TUNING.BUFF_ATTACK_bonus)
 	end
 end
 
@@ -15,8 +15,8 @@ local function aristocratic_dignity_detach(inst, target)
 	-- if target.components.combat ~= nil then
 	--     target.components.combat.externaldamagemultipliers:RemoveModifier(inst)
 	-- end
-	if target.components.stats_manager ~= nil then
-		target.components.stats_manager.bonus:RemoveModifier(inst)
+	if target.components.keqing_stats ~= nil then
+		target.components.keqing_stats.bonus:RemoveModifier(inst)
 	end
 end
 

@@ -23,14 +23,17 @@ local skill = Class(Widget, function(self, owner)
 end)
 
 function skill:OnUpdate(dt)
-	local timeleft = self.owner.skillcdleft:value() or 0
+	-- local timeleft = self.owner.skillcdleft:value() or 0
+	local timeleft = self.owner.replica.skill:GetValue("cd")
+	local skillState = self.owner.replica.skill:GetValue("state")
+
 	self.cd:SetString(string.format("%.1f", timeleft))
 	if self.owner:HasTag("playerghost") then
 		self.cd:Hide()
 		self.image_init:Hide()
 		self.image_delta:Hide()
 	else
-		if self.owner.ChangeSkillIcon1:value() then
+		if skillState then
 			self.cd:Hide()
 			self.image_init:Hide()
 			self.image_delta:Show()

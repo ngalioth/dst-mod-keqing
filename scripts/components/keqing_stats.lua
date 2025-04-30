@@ -1,6 +1,78 @@
-local Keqing_AOE_DMG = Class(function(self, inst)
-	self.inst = inst
-end)
+local function onSprintDirty(self, enabled) end
+local onTailDirty = function(self, enabled) end
+local SourceModifierList = require("util/sourcemodifierlist")
+local CRIT_BASE = 0.05
+local CRITDMG_BASE = 1.884
+local BONUS_BASE = 1
+local ENERGY_RECHARGE_BASE = 1.0
+--- 该组件管理语音 台词等的东西以及一些行为相关的开关等，当然包括classified
+-- 顺便统一管理一些rpc和本地设置的东西吧，原本的太傻x了
+-- 变量同步在keqing_classified里面
+local Keqing = Class(
+	function(self, inst)
+		self.inst = inst
+		self.sprint = false
+		self.isSoundEnabled = true
+		-- 这个配置要提供个选项，在本地加载进入时读取本地设置给服务器发送rpc设置是否启用
+		self.tail = false
+
+		self.hascrit = false
+		self.crit = SourceModifierList(self.inst, CRIT_BASE, SourceModifierList.additive)
+		self.critdmg = SourceModifierList(self.inst, CRITDMG_BASE, SourceModifierList.additive)
+		self.bonus = SourceModifierList(self.inst, BONUS_BASE, SourceModifierList.additive)
+		self.energy_recharge = SourceModifierList(self.inst, ENERGY_RECHARGE_BASE, SourceModifierList.additive)
+	end,
+	nil,
+	{
+		-- 这里原则上只用来向本地同步
+		sprint = onSprintDirty,
+		tail = onTailDirty,
+	}
+)
+function Keqing:OnLoad(data)
+	if data ~= nil then
+		self.sprint = data.sprint or false
+		self.isSoundEnabled = data.isSoundEnabled or true
+		self.tail = data.tail or false
+	end
+	self:EnableTail(self.tail)
+end
+function Keqing:EnableSprint(enable) end
+
+function Keqing:EnableTail(enabled)
+	if enabled then
+		local player = self.inst
+		player.tail_task = player:DoTaskInTime(2, function() -- 拖尾
+			player.kq_tailing = SpawnPrefab("kq_tailing_fx")
+			if player.kq_tailing ~= nil then
+				player.kq_tailing_offset = -105
+				player.kq_tailing.entity:AddFollower()
+				player.kq_tailing.entity:SetParent(player.entity)
+				player.kq_tailing.Follower:FollowSymbol(player.GUID, "swap_body", 0, player.kq_tailing_offset or 0, 0)
+			end
+		end)
+	else
+		self.inst.tail_task = nil
+	end
+end
+
+function Keqing:GetDamageBonus()
+	if math.random() <= self.crit:Get() and TUNING_KEQING.CRIT then
+		self.hascrit = true
+		return self.bonus:Get() * self.critdmg:Get()
+	end
+	self.hascrit = false
+	return self.bonus:Get()
+end
+--- 非得把两个customdmgfn分开，神经
+--- 不是保险方案，但是兼容性来说应该是最好的了
+function Keqing:GetSpDamageBonus()
+	if self.hascrit == true then
+		return self.bonus:Get() * self.critdmg:Get()
+	end
+	return self.bonus:Get()
+end
+
 -- 范围伤害写的sm难用
 -- 都做成范围伤害，range 倍率 武器好像就这样
 --是否为有效目标
@@ -19,7 +91,7 @@ local AREAATTACK_MUST_TAGS = { "_combat", "_health" }
 local exclude_tags =
 	{ "INLIMBO", "companion", "wall", "abigail", "player", "structure", "flight", "invisible", "notarget", "noattack" }
 
-function Keqing_AOE_DMG:DoAoeAttack(skill_mult, range, x, y, z, weapon)
+function Keqing:DoAoeAttack(skill_mult, range, x, y, z, weapon)
 	if weapon == nil then
 		weapon = self.inst.components.combat:GetWeapon()
 	end
@@ -81,4 +153,5 @@ function Keqing_AOE_DMG:DoAoeAttack(skill_mult, range, x, y, z, weapon)
 		--                 and (data.weapon.components.projectile ~= nil
 	end
 end
-return Keqing_AOE_DMG
+
+return Keqing

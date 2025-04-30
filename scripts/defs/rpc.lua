@@ -99,6 +99,8 @@ local ServerRPCs = {
 		end
 	end,
 }
+--- 由于有状态变化，本地执行之前要先判断能不能，类似于动作触发器要在本地执行
+--- 确定可以执行要推送相对应的事件，主机同样要推送事件
 
 for k, v in pairs(ServerRPCs) do
 	AddModRPCHandler("keqing", k, v)

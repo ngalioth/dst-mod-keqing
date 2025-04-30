@@ -66,27 +66,29 @@ local function GetDoubleClickActions(inst, pos, dir, target)
 end
 -- onsetowner 似乎是实例化完成过后？反正这些操作必须在该事件后进行
 local function OnSetOwner(inst)
+	if TheWorld.ismastersim then
+		-- 其实倒也不是classified没实例化，是inst没有，如果是nil直接加就行了，例如lucy
+		if inst.keqing_classified then
+			inst.keqing_classified.Network:SetClassifiedTarget(inst)
+		end
+	end
 	if inst.components.playeractionpicker then
 		-- inst.components.playeractionpicker.doubleclickactionsfn = GetDoubleClickActions
 		-- inst.components.playeractionpicker.pointspecialactionsfn = GetPointSpecialActions
-	end
-	-- 其实倒也不是classified没实例化，是inst没有，如果是nil直接加就行了，例如lucy
-	if inst.keqing_classified then
-		inst.keqing_classified.Network:SetClassifiedTarget(inst)
 	end
 end
 
 -- 这俩暴击独立计算了，需要额外处理，神经暴击机制
 local function CustomCombatDamage(inst, target, weapon, multiplier, mount)
-	if inst.components.stats_manager ~= nil then
-		return inst.components.stats_manager:GetDamageBonus()
+	if inst.components.keqing_stats ~= nil then
+		return inst.components.keqing_stats:GetDamageBonus()
 	end
 
 	return 1
 end
 local function CustomSPCombatDamage(inst, target, weapon, multiplier, mount)
-	if inst.components.stats_manager ~= nil then
-		return inst.components.stats_manager:GetSpDamageBonus()
+	if inst.components.keqing_stats ~= nil then
+		return inst.components.keqing_stats:GetSpDamageBonus()
 	end
 	return 1
 end
@@ -130,16 +132,13 @@ local master_postinit = function(inst)
 	inst.components.health:SetMaxHealth(TUNING_KEQING.HEALTH)
 	inst.components.hunger:SetMax(TUNING_KEQING.HUNGER)
 	inst.components.sanity:SetMax(TUNING_KEQING.SANITY)
-	-- 负责初始化classified，所以要早一点
-	inst:AddComponent("keqing")
+	-- 负责初始化classified和管理面板数据
+	inst:AddComponent("keqing_stats")
 	-- 伤害系数
 	inst.components.combat.damagemultiplier = 1
 	--- 技能组件
-	inst:AddComponent("keqing_aoe_dmg")
 	inst:AddComponent("burst")
 	inst:AddComponent("skill")
-	--- 管理角色暴击和增伤
-	inst:AddComponent("stats_manager")
 	-- 自定义加成，算暴击和增伤
 	inst.components.combat.customdamagemultfn = CustomCombatDamage
 	inst.components.combat.customspdamagemultfn = CustomSPCombatDamage

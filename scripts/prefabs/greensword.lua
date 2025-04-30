@@ -21,8 +21,8 @@ local function onequip(inst, owner) -- 装备
 			owner.components.health.maxhealth * (0.2 + inst["greengemnum"] * 0.02)
 		)
 	end
-	if owner.components.stats_manager ~= nil then
-		owner.components.stats_manager.crit:SetModifier(inst, 0.441)
+	if owner.components.keqing_stats ~= nil then
+		owner.components.keqing_stats.crit:SetModifier(inst, 0.441)
 	end
 end
 
@@ -32,8 +32,8 @@ local function onunequip(inst, owner) -- 解除装备
 	-- if owner.components.combat.external_critical_rate_multipliers ~= nil then
 	-- 	owner.components.combat.external_critical_rate_multipliers:RemoveModifier(inst)
 	-- end
-	if owner.components.stats_manager ~= nil then
-		owner.components.stats_manager.crit:RemoveModifier(inst)
+	if owner.components.keqing_stats ~= nil then
+		owner.components.keqing_stats.crit:RemoveModifier(inst)
 	end
 end
 

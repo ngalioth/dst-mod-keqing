@@ -79,11 +79,11 @@ function Burst:DoSkill(stage)
 	local x, y, z = self.inst.Transform:GetWorldPosition()
 	if stage == "skill" then
 		-- 这里大概加个转变鱼肉吧
-		self.inst.components.keqing_aoe_dmg:DoAoeAttack(skill_dmg_mult, range, x, y, z)
+		self.inst.components.keqing_stats:DoAoeAttack(skill_dmg_mult, range, x, y, z)
 	elseif stage == "slash" then
-		self.inst.components.keqing_aoe_dmg:DoAoeAttack(slash_dmg_mult, range, x, y, z)
+		self.inst.components.keqing_stats:DoAoeAttack(slash_dmg_mult, range, x, y, z)
 	elseif stage == "last" then
-		self.inst.components.keqing_aoe_dmg:DoAoeAttack(last_dmg_mult, range, x, y, z)
+		self.inst.components.keqing_stats:DoAoeAttack(last_dmg_mult, range, x, y, z)
 	end
 end
 function Burst:TryDoSkill()

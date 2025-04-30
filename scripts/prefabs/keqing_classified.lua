@@ -1,66 +1,11 @@
 --------------------------------------------------------------------------
---Common interface
---------------------------------------------------------------------------
-local COMMAND_NAMES = {
-	"ENABLESPRINT",
-	"DISABLESPRINT",
-}
-local COMMANDS = table.invert(COMMAND_NAMES)
-
---------------------------------------------------------------------------
 --Server interface
 --------------------------------------------------------------------------
-local CmdFns_Server = {
-	[COMMANDS.ENABLESPRINT] = function(inst)
-		modprint("enable sprint succeed")
-		if inst._parent then
-			inst._parent.components.keqing:EnableSprint(true)
-		end
-	end,
-	[COMMANDS.DISABLESPRINT] = function(inst)
-		modprint("disable succeed")
-		if inst._parent then
-			inst._parent.components.keqing:EnableSprint(false)
-		end
-	end,
-}
-
-local function ExecuteCommand_Server(inst, cmd)
-	local fn = CmdFns_Server[cmd]
-	if fn then
-		return fn(inst)
-	end
-	modprint("Unsupported Keqing command:", cmd)
-	return false
-end
 
 --------------------------------------------------------------------------
 --Client interface
 --------------------------------------------------------------------------
 -- 客户端不进行其他操作，仅发送RPC
-local function BasicCommand_Client(inst, cmd)
-	-- SendRPCToServer(RPC.WobyCommand, cmd)
-	SendModRPCToServer(MOD_RPC["keqing"]["command"], cmd)
-	return true
-end
-local CmdFns_Client = {
-	[COMMANDS.ENABLESPRINT] = BasicCommand_Client,
-	[COMMANDS.DISABLESPRINT] = BasicCommand_Client,
-}
--- 大部分其实也只是rpc封装，具体执行的东西在ClientCommands定义里面
---- rpc根据cmd在Commands_Server里面找到对应的函数执行
-local function ExecuteCommand_Client(inst, cmd)
-	-- if not IgnoreBusy_Client[cmd] and IsBusy_Client(inst) then
-	-- 	return false
-	-- end
-	local fn = CmdFns_Client[cmd]
-	-- dumptable(CmdFns_Client)
-	if fn then
-		return fn(inst, cmd)
-	end
-	modprint("Unsupported Keqing command:", cmd)
-	return false
-end
 
 --Triggered on clients immediately after initial deserialization of tags from construction
 local function OnRemoveEntity(inst)
@@ -71,13 +16,13 @@ end
 local function OnEntityReplicated(inst)
 	inst._parent = inst.entity:GetParent()
 	if inst._parent == nil then
-		-- moderror("Unable to initialize classified data for keqing", level)
+		moderror("Unable to initialize classified data for keqing")
 		--- 实际上客户端由于classifedTarget的设置，只能由classified主动调用parent的attach
 	else
 		--- 由于需要绑定过多组件，延迟0s保证生效
 		inst:DoStaticTaskInTime(0, function(inst)
 			-- 这里分别调用对应组件的AttachClassified
-			for i, v in ipairs({ "keqing", "burst" }) do
+			for i, v in ipairs({ "keqing", "burst", "skill" }) do
 				modprint("Try to attach classified to parent component: " .. v)
 				inst._parent:TryAttachClassifiedToReplicaComponent(inst, v)
 			end
@@ -88,6 +33,9 @@ local function OnEntityReplicated(inst)
 	end
 end
 --------------------------------------------------------------------------
+
+--------------------------------------------------------------------------
+
 -- burst_cd_dirty就对本地的parent推送 burst_cd_delta事件，主机组件内部一样，完成同步
 local function makeOnDirty(cmp, name)
 	return function(inst)
@@ -103,11 +51,17 @@ local function OnInitialDirtyStates(inst) end
 local function RegisterNetListeners_mastersim(inst) end
 
 local function RegisterNetListeners_local(inst)
+	--- for burst
 	inst:ListenForEvent("burst_level_dirty", makeOnDirty("burst", "level"))
 	inst:ListenForEvent("burst_cd_dirty", makeOnDirty("burst", "cd"))
 	inst:ListenForEvent("burst_maxcd_dirty", makeOnDirty("burst", "maxcd"))
 	inst:ListenForEvent("burst_energy_dirty", makeOnDirty("burst", "energy"))
 	inst:ListenForEvent("burst_maxenergy_dirty", makeOnDirty("burst", "maxenergy"))
+	--- for skill
+	inst:ListenForEvent("skill_level_dirty", makeOnDirty("skill", "level"))
+	inst:ListenForEvent("skill_cd_dirty", makeOnDirty("skill", "cd"))
+	inst:ListenForEvent("skill_maxcd_dirty", makeOnDirty("skill", "maxcd"))
+	inst:ListenForEvent("skill_state_dirty", makeOnDirty("skill", "state"))
 end
 
 local function RegisterNetListeners_common(inst) end
@@ -129,10 +83,6 @@ local function RegisterNetListeners(inst)
 		inst:ListenForEvent("finishseamlessplayerswap", fns.FinishSeamlessPlayerSwap, inst._parent)
 		--Fade is initialized by OnPlayerActivated in gamelogic.lua
 	end
-	-- OnSayDirty(inst)
-	inst:ListenForEvent("sprint_dirty", function(inst)
-		modprint("sprint dirty value is " .. tostring(inst.sprint:value()))
-	end)
 end
 
 --------------------------------------------------------------------------
@@ -160,6 +110,7 @@ local function fn()
 	inst:AddTag("CLASSIFIED")
 	-- 是否开启冲刺
 	inst.sprint = net_bool(inst.GUID, "keqing.sprint", "sprint_dirty")
+
 	-- 是否开启语音
 	inst.audio = net_bool(inst.GUID, "keqing.audio", "audio_dirty")
 
@@ -171,9 +122,10 @@ local function fn()
 
 	-- 元素战技 cd 当前cd 是否为二段
 	for _, v in ipairs(skillVar) do
-		inst["keqing_" .. v] = net_float(inst.GUID, "skill." .. v, "skill_" .. v .. "_dirty")
+		inst["skill_" .. v] = net_float(inst.GUID, "skill." .. v, "skill_" .. v .. "_dirty")
 	end
-	inst.skill_state = net_bool(inst.GUID, "keqing_classified.skill_state", "skill_state_dirty")
+	inst["skill_" .. "level"] = net_ushortint(inst.GUID, "skill.level", "skill_level_dirty")
+	inst.skill_state = net_bool(inst.GUID, "skill.state", "skill_state_dirty")
 
 	inst.entity:SetPristine()
 
@@ -187,13 +139,9 @@ local function fn()
 
 		--Delay net listeners until after initial values are deserialized
 		inst:DoStaticTaskInTime(0, RegisterNetListeners)
-		inst.ExecuteCommand = ExecuteCommand_Client
 
 		return inst
 	end
-
-	--Server interface
-	inst.ExecuteCommand = ExecuteCommand_Server
 
 	return inst
 end

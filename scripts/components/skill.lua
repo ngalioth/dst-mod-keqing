@@ -7,7 +7,7 @@ end
 ---
 --- 那么再按照当前位置往目标位置搜索最近的可以站立的位置
 
-local function TryLocate(pos, target_pos)
+local function FindPlantform(pos, target_pos)
 	-- 检查
 
 	-- 搜索
@@ -17,12 +17,13 @@ local function TryLocate(pos, target_pos)
 end
 
 ---------------------------------------------------
-
-local function onCurrentCdChange(self, cd)
-	-- self.inst.replica.Skill:SetCurrentCd(cd)
-end
-local function onStateChange(self, state)
-	-- self.inst.replica.Skill:SetState(state)
+local function SetValue(self, name, value)
+	if self.inst then
+		self.inst:PushEvent("skill" .. name .. "_delta", value)
+		if self.inst.keqing_classified ~= nil then
+			self.inst.keqing_classified["skill_" .. name]:set(value)
+		end
+	end
 end
 
 local thunder_wedge_damage = 50.0 / 100
@@ -44,6 +45,7 @@ local thunderstorm_slash_range = 10
 local Skill = Class(
 	function(self, inst)
 		self.inst = inst
+		self.level = 1
 		self.stiletto = nil -- 存储雷楔的ins引用，仅在state为true时有效
 		self.maxcd = 7.5 -- 默认冷却时间 7.5s 释放state进入2,5s内释放第二段，否则直接转回状态0，雷楔失效 当然可选引爆直接转回状态0
 		self.cd = 0.0 -- 当前冷却时间
@@ -51,8 +53,18 @@ local Skill = Class(
 	end,
 	nil,
 	{
-		cd = onCurrentCdChange, -- 技能剩余cd
-		state = onStateChange, -- 特殊状态 仅true false
+		maxcd = function(self, value)
+			SetValue(self, "maxcd", value)
+		end,
+		level = function(self, value)
+			SetValue(self, "level", value)
+		end,
+		cd = function(self, value)
+			SetValue(self, "cd", value)
+		end,
+		state = function(self, value)
+			SetValue(self, "state", value)
+		end,
 	}
 )
 function Skill:OnSave()
@@ -121,10 +133,10 @@ function Skill:CreateStiletto(target_pos)
 	self:RemoveStiletto()
 	local stiletto = SpawnPrefab("keqing_stiletto")
 	stiletto.Transform:SetPosition(target_pos.x, target_pos.y, target_pos.z)
-
 	self.stiletto = stiletto
 	self.state = true
-	self.inst.components.keqing_aoe_dmg:DoAoeAttack(
+	self:SetCd()
+	self.inst.components.keqing_stats:DoAoeAttack(
 		thunder_wedge_damage,
 		thunder_wedge_range,
 		target_pos.x,
@@ -140,14 +152,14 @@ function Skill:RemoveStiletto(type)
 		if type == 1 then
 			if self.inst.Physics then
 				-- 这里判断pos位置是否可以站立，不能的话需要进行修正，
-				local pos = TryLocate(self.inst:GetPosition(), pos)
+				local pos = FindPlantform(self.inst:GetPosition(), pos)
 
 				self.inst.Physics:Teleport(pos.x, pos.y, pos.z)
 				-- 特效过后放在sg里面吧,这里显然不太合适的
 				local fx = SpawnPrefab("kq_skill_fx")
 				fx.Transform:SetPosition(pos.x, pos.y, pos.z)
 
-				self.inst.components.keqing_aoe_dmg:DoAoeAttack(slash_damage, slash_range, pos.x, pos.y, pos.z)
+				self.inst.components.keqing_stats:DoAoeAttack(slash_damage, slash_range, pos.x, pos.y, pos.z)
 			end
 		end
 		-- 引爆
@@ -155,7 +167,7 @@ function Skill:RemoveStiletto(type)
 			-- 生成引爆特效，造成伤害
 			local fx = SpawnPrefab("kq_skill_fx")
 			fx.Transform:SetPosition(pos.x, pos.y, pos.z)
-			self.inst.components.keqing_aoe_dmg:DoAoeAttack(
+			self.inst.components.keqing_stats:DoAoeAttack(
 				thunderstorm_slash_damage,
 				thunderstorm_slash_range,
 				pos.x,

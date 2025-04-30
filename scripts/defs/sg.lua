@@ -98,7 +98,8 @@ AddStategraphState(
 		end,
 	})
 )
-
+-- SGwilson_client只是为了延迟补偿做的，更多时候其实根本接收不到事件
+--- 绝大部分时候都只是为了响应一些action的，事件类型几乎没有 过后sprint可以做一下
 AddStategraphState(
 	"wilson_client",
 	State({
