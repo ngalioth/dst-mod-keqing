@@ -30,11 +30,6 @@ local thunder_wedge_damage = 50.0 / 100
 local slash_damage = 168 / 100
 local thunderstorm_slash_damage = 84 / 100
 
-local thunder_wedge_range = 2
-
-local slash_range = 2
-local thunderstorm_slash_range = 10
-
 -- 该组件管理战技的cd、能量、冷却时间、技能等级，管理雷楔，下线应当消失重置状态的
 -- 战技释
 -- 第一段
@@ -45,6 +40,7 @@ local thunderstorm_slash_range = 10
 local Skill = Class(
 	function(self, inst)
 		self.inst = inst
+		self._tickrate = 0
 		self.level = 1
 		self.stiletto = nil -- 存储雷楔的ins引用，仅在state为true时有效
 		self.maxcd = 7.5 -- 默认冷却时间 7.5s 释放state进入2,5s内释放第二段，否则直接转回状态0，雷楔失效 当然可选引爆直接转回状态0
@@ -56,11 +52,22 @@ local Skill = Class(
 		maxcd = function(self, value)
 			SetValue(self, "maxcd", value)
 		end,
-		level = function(self, value)
-			SetValue(self, "level", value)
+		level = function(self, value, old)
+			if type(value) == "number" then
+				local temp = (math.floor(value) - 1) % 15 + 1
+				SetValue(self, "level", temp)
+			else
+				-- 不符合条件的不改动
+				self.level = old
+			end
 		end,
 		cd = function(self, value)
-			SetValue(self, "cd", value)
+			self._tickrate = self._tickrate + 1
+			if value <= 0 or self._tickrate >= 3 then
+				self._tickrate = 0
+				SetValue(self, "cd", value)
+			end
+			-- SetValue(self, "cd", value)
 		end,
 		state = function(self, value)
 			SetValue(self, "state", value)
@@ -100,7 +107,7 @@ function Skill:SetCd()
 	self.inst:StartUpdatingComponent(self)
 end
 
-function Skill:TryDoSkill()
+function Skill:TryDoSkill(pos)
 	local doer = self.inst
 	local canDo = doer
 		and doer:IsValid()
@@ -110,7 +117,7 @@ function Skill:TryDoSkill()
 		and not (doer.components.rider and doer.components.rider:IsRiding())
 	if canDo then
 		if not self.state then
-			self:CreateStiletto()
+			self:CreateStiletto(pos)
 		else
 			-- 缺个判断是否引爆的参数，得加到rpc里面 先默认连斩吧
 			self:RemoveStiletto(1)
@@ -121,28 +128,23 @@ function Skill:TryDoSkill()
 	end
 end
 
-function Skill:CreateStiletto(target_pos)
+function Skill:CreateStiletto(pos)
 	--- 仅独行长路下，后面得额外处理，客户端往服务器发坐标
-	local target_pos = target_pos or TheInput:GetWorldPosition() -- 鼠标坐标
-	local pos = self.inst:GetPosition() --- 玩家当前坐标
 
 	--  这里设定最大的距离，超过最大距离，那么按照这个角度找到最大的距离的位置
 	--
 	--
 	-- 防止多个雷楔
+
 	self:RemoveStiletto()
 	local stiletto = SpawnPrefab("keqing_stiletto")
-	stiletto.Transform:SetPosition(target_pos.x, target_pos.y, target_pos.z)
+	stiletto.Transform:SetPosition(pos.x, pos.y, pos.z)
 	self.stiletto = stiletto
 	self.state = true
 	self:SetCd()
-	self.inst.components.keqing_stats:DoAoeAttack(
-		thunder_wedge_damage,
-		thunder_wedge_range,
-		target_pos.x,
-		target_pos.y,
-		target_pos.z
-	)
+	local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].thunder_wedge_damage / 100
+	local range = TUNING_KEQING.SKILL_STULETTO_RANGE
+	self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
 end
 
 function Skill:RemoveStiletto(type)
@@ -159,7 +161,9 @@ function Skill:RemoveStiletto(type)
 				local fx = SpawnPrefab("kq_skill_fx")
 				fx.Transform:SetPosition(pos.x, pos.y, pos.z)
 
-				self.inst.components.keqing_stats:DoAoeAttack(slash_damage, slash_range, pos.x, pos.y, pos.z)
+				local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].slash_damage / 100
+				local range = TUNING_KEQING.SKILL_SLASH_RANGE
+				self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
 			end
 		end
 		-- 引爆
@@ -167,13 +171,11 @@ function Skill:RemoveStiletto(type)
 			-- 生成引爆特效，造成伤害
 			local fx = SpawnPrefab("kq_skill_fx")
 			fx.Transform:SetPosition(pos.x, pos.y, pos.z)
-			self.inst.components.keqing_stats:DoAoeAttack(
-				thunderstorm_slash_damage,
-				thunderstorm_slash_range,
-				pos.x,
-				pos.y,
-				pos.z
-			)
+			-- gpt转出来的倍率默认x2了
+			local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].thunderstorm_slash_damage / 100 / 2
+			local range = TUNING_KEQING.SKILL_SLASH_RANGE
+			self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
+			self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
 		end
 		-- 没做,进入cd,状态清空,雷楔移除即可
 		self.stiletto:Remove()

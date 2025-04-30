@@ -41,7 +41,7 @@ local function makeOnDirty(cmp, name)
 	return function(inst)
 		if inst._parent then
 			local parent = inst._parent
-			parent:PushEvent(cmp .. "_" .. name .. "_delta", parent.replica.burst:GetValue(name))
+			parent:PushEvent(cmp .. "_" .. name .. "_delta", inst[cmp .. "_" .. name]:value())
 		end
 	end
 end

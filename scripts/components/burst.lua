@@ -10,23 +10,37 @@ end
 local Burst = Class(
 	function(self, inst)
 		self.inst = inst
+		-- 由于饥荒的网络同步频率只有15hz，而dt更新的频率是30hz，过高的频率会导致变量乱序，对于cd这种很依赖顺序的需要稍微调慢点
+		self._tickrate = 0
 		-- 字段和网络变量名保持同步
 		self.level = 1 -- 默认等级
 		self.maxcd = 12.0 -- 默认冷却时间
 		self.maxenergy = 40.0 -- 默认最大能量
 		self.cd = 0.0 -- 当前冷却时间
 		self.energy = 0.0 -- 当前能量
+		makereadonly(self, "maxcd")
+		makereadonly(self, "maxenergy")
 	end,
 	nil,
 	{
-		level = function(self, value)
-			SetValue(self, "level", value)
+		level = function(self, value, old)
+			if type(value) == "number" then
+				local temp = (math.floor(value) - 1) % 15 + 1
+				SetValue(self, "level", temp)
+			else
+				-- 不符合条件的不改动
+				self.level = old
+			end
 		end,
 		maxcd = function(self, value)
 			SetValue(self, "maxcd", value)
 		end,
 		cd = function(self, value)
-			SetValue(self, "cd", value)
+			self._tickrate = self._tickrate + 1
+			if value <= 0 or self._tickrate >= 3 then
+				self._tickrate = 0
+				SetValue(self, "cd", value)
+			end
 		end,
 		maxenergy = function(self, value)
 			SetValue(self, "maxenergy", value)
@@ -70,10 +84,10 @@ end
 
 function Burst:DoSkill(stage)
 	-- 一段斩击
-	local skill_dmg_mult = 1.87
-	local slash_dmg_mult = 0.51
-	local last_dmg_mult = 4.01
-	local range = 10
+	local skill_dmg_mult = TUNING_KEQING.BURST_MULT_DATE[self.level].skill_damage / 100
+	local slash_dmg_mult = TUNING_KEQING.BURST_MULT_DATE[self.level].slash_damage / 100 / 8
+	local last_dmg_mult = TUNING_KEQING.BURST_MULT_DATE[self.level].final_hit_damage / 100
+	local range = TUNING_KEQING.BURST_RANGE
 	--- 8次连斩
 	--- 最后一段斩击
 	local x, y, z = self.inst.Transform:GetWorldPosition()
