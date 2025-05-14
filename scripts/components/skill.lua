@@ -17,19 +17,17 @@ local function FindPlantform(pos, target_pos)
 end
 
 ---------------------------------------------------
-local function SetValue(self, name, value)
-	if self.inst then
-		self.inst:PushEvent("skill" .. name .. "_delta", value)
-		if self.inst.keqing_classified ~= nil then
-			self.inst.keqing_classified["skill_" .. name]:set(value)
+local function makeDirty(self, name, value)
+	local inst = self.inst
+	modassert(inst ~= nil, "inst is nil")
+	if inst then
+		inst:PushEvent("skill_" .. name .. "_delta", value)
+		local classified = inst.keqing_classified
+		if classified and classified["skill_" .. name] then
+			classified["skill_" .. name]:set(value)
 		end
 	end
 end
-
-local thunder_wedge_damage = 50.0 / 100
-local slash_damage = 168 / 100
-local thunderstorm_slash_damage = 84 / 100
-
 -- 该组件管理战技的cd、能量、冷却时间、技能等级，管理雷楔，下线应当消失重置状态的
 -- 战技释
 -- 第一段
@@ -50,64 +48,63 @@ local Skill = Class(
 	nil,
 	{
 		maxcd = function(self, value)
-			SetValue(self, "maxcd", value)
+			makeDirty(self, "maxcd", value)
 		end,
 		level = function(self, value, old)
-			if type(value) == "number" then
-				local temp = (math.floor(value) - 1) % 15 + 1
-				SetValue(self, "level", temp)
-			else
-				-- 不符合条件的不改动
-				self.level = old
-			end
+			makeDirty(self, "level", value)
 		end,
 		cd = function(self, value)
 			self._tickrate = self._tickrate + 1
 			if value <= 0 or self._tickrate >= 3 then
 				self._tickrate = 0
-				SetValue(self, "cd", value)
+				makeDirty(self, "cd", value)
 			end
 			-- SetValue(self, "cd", value)
 		end,
 		state = function(self, value)
-			SetValue(self, "state", value)
+			makeDirty(self, "state", value)
 		end,
 	}
 )
+
 function Skill:OnSave()
-	return {
-		cd = self.cd,
-	}
+	return { cd = self.cd, level = self.level }
 end
+
 function Skill:OnLoad(data)
 	if data ~= nil then
 		self.cd = data.cd or self.maxcd
+		self.level = data.level or 1
 		if self.cd > 0 then
 			self.inst:StartUpdatingComponent(self)
 		end
 	end
 end
+
 function Skill:OnUpdate(dt)
-	self.cd = self.cd - dt
-	if self.cd <= 2.5 then
-		self:RemoveStiletto() -- 二段状态失效，进入cd 同时要将雷楔移除
-	end
-	if self.cd <= 0 then
-		self.cd = 0
+	self.cd = math.max(self.cd - dt, 0)
+	if self.cd == 0 then
 		self.inst:StopUpdatingComponent(self)
 	end
-end
--- 下线要保证雷楔被清空
-function Skill:OnRemoveEntity()
-	self:RemoveStiletto()
 end
 
 function Skill:SetCd()
 	self.cd = self.maxcd
 	self.inst:StartUpdatingComponent(self)
 end
+-- 留给如雷
+function Skill:DoCdDelta(value)
+	modassert(type(value) == "number", "value must be a number")
 
-function Skill:TryDoSkill(pos)
+	self.cd = math.max(0, self.cd - value)
+end
+
+function Skill:SetLevel(level)
+	modassert(type(level) == "number", "level must be a number")
+	self.level = (math.floor(level) - 1) % 15 + 1
+end
+
+function Skill:TryDoSkill(pos, doslash)
 	local doer = self.inst
 	local canDo = doer
 		and doer:IsValid()
@@ -116,32 +113,39 @@ function Skill:TryDoSkill(pos)
 		and not doer.sg:HasStateTag("busy")
 		and not (doer.components.rider and doer.components.rider:IsRiding())
 	if canDo then
-		if not self.state then
+		-- debug状态不判断CD
+		if not self.state and (TUNING_KEQING.DEBUG or self.cd <= 0) then
 			self:CreateStiletto(pos)
-		else
-			-- 缺个判断是否引爆的参数，得加到rpc里面 先默认连斩吧
+			self:SetCd()
+			return true
+		elseif self.state and doslash ~= nil and doslash then
+			-- doslash 是否引爆
+			self:RemoveStiletto(2)
+			return true
+		elseif self.state then
 			self:RemoveStiletto(1)
+			return true
 		end
 	end
-	if not TUNING_KEQING.DEBUG then
-		self:SetCd()
-	end
+	return false
 end
 
 function Skill:CreateStiletto(pos)
-	--- 仅独行长路下，后面得额外处理，客户端往服务器发坐标
-
 	--  这里设定最大的距离，超过最大距离，那么按照这个角度找到最大的距离的位置
 	--
-	--
 	-- 防止多个雷楔
-
 	self:RemoveStiletto()
+
 	local stiletto = SpawnPrefab("keqing_stiletto")
 	stiletto.Transform:SetPosition(pos.x, pos.y, pos.z)
 	self.stiletto = stiletto
 	self.state = true
+	self.onstilettoremove = function()
+		self.state = false
+	end
+	self.inst:ListenForEvent("onremove", self.onstilettoremove, self.stiletto)
 	self:SetCd()
+
 	local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].thunder_wedge_damage / 100
 	local range = TUNING_KEQING.SKILL_STULETTO_RANGE
 	self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
@@ -151,27 +155,25 @@ function Skill:RemoveStiletto(type)
 	if self.stiletto then
 		local pos = self.stiletto:GetPosition()
 		-- 斩击
-		if type == 1 then
-			if self.inst.Physics then
-				-- 这里判断pos位置是否可以站立，不能的话需要进行修正，
-				local pos = FindPlantform(self.inst:GetPosition(), pos)
+		if type == 1 and self.inst.Physics then
+			-- 这里判断pos位置是否可以站立，不能的话需要进行修正，
+			local pos = FindPlantform(self.inst:GetPosition(), pos)
 
-				self.inst.Physics:Teleport(pos.x, pos.y, pos.z)
-				-- 特效过后放在sg里面吧,这里显然不太合适的
-				local fx = SpawnPrefab("kq_skill_fx")
-				fx.Transform:SetPosition(pos.x, pos.y, pos.z)
+			self.inst.Physics:Teleport(pos.x, pos.y, pos.z)
+			-- 特效过后放在sg里面吧,这里显然不太合适的
+			local fx = SpawnPrefab("kq_skill_fx")
+			fx.Transform:SetPosition(pos.x, pos.y, pos.z)
 
-				local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].slash_damage / 100
-				local range = TUNING_KEQING.SKILL_SLASH_RANGE
-				self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
-			end
+			local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].slash_damage / 100
+			local range = TUNING_KEQING.SKILL_SLASH_RANGE
+			self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
 		end
 		-- 引爆
 		if type == 2 then
 			-- 生成引爆特效，造成伤害
 			local fx = SpawnPrefab("kq_skill_fx")
 			fx.Transform:SetPosition(pos.x, pos.y, pos.z)
-			-- gpt转出来的倍率默认x2了
+			-- gpt转出来的倍率默认乘次数了
 			local mult = TUNING_KEQING.SKILL_MULT_DATA[self.level].thunderstorm_slash_damage / 100 / 2
 			local range = TUNING_KEQING.SKILL_SLASH_RANGE
 			self.inst.components.keqing_stats:DoAoeAttack(mult, range, pos.x, pos.y, pos.z)
@@ -182,7 +184,6 @@ function Skill:RemoveStiletto(type)
 	end
 	-- 不管怎么样 ,雷楔都要移除,状态都要重置
 	self.stiletto = nil
-	self.state = false
 end
 
 return Skill

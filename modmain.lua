@@ -1,6 +1,5 @@
 PrefabFiles = {
 	"keqing", --人物代码文件
-	"leixie", --雷楔
 	"kq_food",
 	"kq_specialfish", -- 绝境求生烤鱼
 	"kq_liyuepot", --锅
@@ -203,6 +202,9 @@ Assets = {
 
 	Asset("IMAGE", "images/kq_tailing.tex"), --拖尾
 	Asset("ATLAS", "images/kq_tailing.xml"),
+
+	Asset("SOUNDPACKAGE", "sound/keqing_audio.fev"),
+	Asset("SOUND", "sound/keqing_audio_battle.fsb"),
 }
 --[[---注意事项
 1、目前官方自从熔炉之后人物的界面显示用的都是那个椭圆的图

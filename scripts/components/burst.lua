@@ -24,13 +24,7 @@ local Burst = Class(
 	nil,
 	{
 		level = function(self, value, old)
-			if type(value) == "number" then
-				local temp = (math.floor(value) - 1) % 15 + 1
-				SetValue(self, "level", temp)
-			else
-				-- 不符合条件的不改动
-				self.level = old
-			end
+			SetValue(self, "level", value)
 		end,
 		maxcd = function(self, value)
 			SetValue(self, "maxcd", value)
@@ -81,6 +75,29 @@ function Burst:SetCd(cd)
 	self.cd = cd or self.maxcd
 	self.inst:StartUpdatingComponent(self)
 end
+-- 留给未来的如雷
+function Burst:DoCdDelta(value)
+	modassert(type(value) == "number", "value must be a number")
+	if value == nil then
+		return
+	end
+	self.cd = math.max(0, self.cd - value)
+end
+
+function Burst:DoEnergyDelta(value)
+	modassert(type(value) == "number", "value must be a number")
+	if self.energy >= value then
+		self.energy = math.min(self.energy - value, self.maxenergy)
+		return true
+	end
+	return false
+end
+
+function Burst:SetLevel(level)
+	modassert(type(level) == "number", "level must be a number")
+	local temp = (math.floor(level) - 1) % 15 + 1
+	self.level = temp
+end
 
 function Burst:DoSkill(stage)
 	-- 一段斩击
@@ -109,15 +126,13 @@ function Burst:TryDoSkill()
 		and not doer.sg:HasStateTag("busy")
 		and not (doer.components.rider and doer.components.rider:IsRiding())
 	if not TUNING_KEQING.DEBUG then
-		canDo = canDo and self.energy >= self.maxenergy and self.cd <= 0
+		canDo = canDo and self:DoEnergyDelta(self.maxenergy) and self.cd <= 0
+		self:SetCd()
 	end
 	if canDo then
 		modprint("ready to do burst")
 		doer:PushEvent("do_burst")
-		if not TUNING_KEQING.DEBUG then
-			self:SetCd()
-			self.energy = self.energy - 40
-		end
+		self.inst.SoundEmitter:PlaySound("keqing_audio/keqing/battle_skill03")
 	end
 end
 

@@ -29,6 +29,9 @@ local function create()
 	inst:AddTag("FX")
 	inst.entity:SetPristine()
 	inst.persists = false
+	inst:DoTaskInTime(5, function()
+		inst:Remove()
+	end)
 
 	if not TheWorld.ismastersim then
 		return inst
